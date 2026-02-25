@@ -1,0 +1,25 @@
+package com.prd.seccontrol.model.types;
+
+public enum Country {
+  PERU,
+  COLOMBIA,
+  ECUADOR,
+  BOLIVIA,
+  CHILE,
+  ARGENTINA,
+  BRASIL,
+  VENEZUELA,
+  PANAMA,
+  MEXICO,
+  ESTADOS_UNIDOS,
+  CANADA,
+  ESPAÑA,
+  PORTUGAL,
+  FRANCIA,
+  ALEMANIA,
+  ITALIA,
+  REINO_UNIDO,
+  CHINA,
+  JAPON,
+  COREA,
+}
