@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import java.time.LocalDateTime;
+import java.time.Month;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
@@ -26,6 +27,8 @@ public class EmployeeAssignmentMonthly {
       updatable = false)
   private Employee employee;
   private ZoneType zoneType;
+  private Month month;
+  private Integer year;
   @CreationTimestamp
   private LocalDateTime createdAt;
 
@@ -86,5 +89,21 @@ public class EmployeeAssignmentMonthly {
 
   public void setZoneType(ZoneType zoneType) {
     this.zoneType = zoneType;
+  }
+
+  public Month getMonth() {
+    return month;
+  }
+
+  public void setMonth(Month month) {
+    this.month = month;
+  }
+
+  public Integer getYear() {
+    return year;
+  }
+
+  public void setYear(Integer year) {
+    this.year = year;
   }
 }
