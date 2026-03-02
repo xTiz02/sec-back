@@ -24,6 +24,7 @@ public class EmployeeService {
     employee.setUserId(request.userId());
     employee.setGender(request.gender());
     employee.setIdentificationType(request.identificationType());
+    employee.setEmployeeType(request.employeeType());
 
     Employee savedEmployee = employeeRepository.save(employee);
     return new EmployeeDto(savedEmployee);
@@ -41,7 +42,7 @@ public class EmployeeService {
     employee.setUserId(request.userId() != null ? request.userId() : employee.getUserId());
     employee.setGender(request.gender() != null ? request.gender() : employee.getGender());
     employee.setIdentificationType(request.identificationType() != null ? request.identificationType() : employee.getIdentificationType());
-
+    employee.setEmployeeType(request.employeeType() != null ? request.employeeType() : employee.getEmployeeType());
     return new EmployeeDto(employeeRepository.save(employee));
   }
 }

@@ -5,6 +5,7 @@ import com.prd.seccontrol.model.types.EmployeeType;
 import com.prd.seccontrol.model.types.Gender;
 import com.prd.seccontrol.model.types.IdentificationType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -17,7 +18,7 @@ public class Employee {
   @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
   private Long id;
   private Long userId;
-  @OneToOne
+  @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "userId",referencedColumnName = "id", insertable = false, updatable = false)
   private User user;
   private String firstName;
@@ -29,7 +30,7 @@ public class Employee {
   private String documentNumber;
   private Country country;
   private LocalDate birthDate;
-  private EmployeeType employeeType = EmployeeType.NONE;
+  private EmployeeType employeeType;
 
   private IdentificationType identificationType;
   public Employee() {

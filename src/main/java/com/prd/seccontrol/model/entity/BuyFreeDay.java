@@ -9,7 +9,7 @@ import jakarta.persistence.OneToOne;
 import java.time.LocalDate;
 
 @Entity
-public class FreeDay {
+public class BuyFreeDay {
   @Id
   @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
   private Long id;
@@ -20,8 +20,12 @@ public class FreeDay {
   private DayOfWeek dayOfWeek;
   private Integer dayOfMonth;
   private LocalDate date;
+  private Long guardUnityScheduleAssignmentId;
+  @OneToOne
+  @JoinColumn(name = "guardUnityScheduleAssignmentId", referencedColumnName = "id", updatable = false, insertable = false)
+  private GuardUnityScheduleAssignment guardUnityScheduleAssignment;
 
-  public FreeDay() {
+  public BuyFreeDay() {
   }
 
   public LocalDate getDate() {
@@ -70,5 +74,22 @@ public class FreeDay {
 
   public void setDayOfMonth(Integer dayOfMonth) {
     this.dayOfMonth = dayOfMonth;
+  }
+
+  public GuardUnityScheduleAssignment getGuardUnityScheduleAssignment() {
+    return guardUnityScheduleAssignment;
+  }
+
+  public void setGuardUnityScheduleAssignment(
+      GuardUnityScheduleAssignment guardUnityScheduleAssignment) {
+    this.guardUnityScheduleAssignment = guardUnityScheduleAssignment;
+  }
+
+  public Long getGuardUnityScheduleAssignmentId() {
+    return guardUnityScheduleAssignmentId;
+  }
+
+  public void setGuardUnityScheduleAssignmentId(Long guardUnityScheduleAssignmentId) {
+    this.guardUnityScheduleAssignmentId = guardUnityScheduleAssignmentId;
   }
 }

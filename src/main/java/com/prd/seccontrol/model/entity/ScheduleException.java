@@ -13,11 +13,11 @@ public class ScheduleException {
   @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
   private Long id;
 
-  private Long guardUnityScheduleAssignmentId;
+  private Long dateGuardUnityAssignmentId;
   @OneToOne
-  @JoinColumn(name = "guardUnityScheduleAssignmentId", referencedColumnName = "id", updatable = false,
+  @JoinColumn(name = "dateGuardUnityAssignmentId", referencedColumnName = "id", updatable = false,
       insertable = false)
-  private GuardUnityScheduleAssignment guardUnityScheduleAssignment;
+  private DateGuardUnityAssignment dateGuardUnityAssignment;
   private String motive;
   private String description;
   private ScheduleExceptionType scheduleExceptionType;
@@ -58,20 +58,20 @@ public class ScheduleException {
     this.id = id;
   }
 
-  public Long getGuardUnityScheduleAssignmentId() {
-    return guardUnityScheduleAssignmentId;
+  public DateGuardUnityAssignment getDateGuardUnityAssignment() {
+    return dateGuardUnityAssignment;
   }
 
-  public void setGuardUnityScheduleAssignmentId(Long guardUnityScheduleAssignmentId) {
-    this.guardUnityScheduleAssignmentId = guardUnityScheduleAssignmentId;
+  public void setDateGuardUnityAssignment(
+      DateGuardUnityAssignment dateGuardUnityAssignment) {
+    this.dateGuardUnityAssignment = dateGuardUnityAssignment;
   }
 
-  public GuardUnityScheduleAssignment getGuardUnityScheduleAssignment() {
-    return guardUnityScheduleAssignment;
+  public Long getDateGuardUnityAssignmentId() {
+    return dateGuardUnityAssignmentId;
   }
 
-  public void setGuardUnityScheduleAssignment(
-      GuardUnityScheduleAssignment guardUnityScheduleAssignment) {
-    this.guardUnityScheduleAssignment = guardUnityScheduleAssignment;
+  public void setDateGuardUnityAssignmentId(Long dateGuardUnityAssignmentId) {
+    this.dateGuardUnityAssignmentId = dateGuardUnityAssignmentId;
   }
 }

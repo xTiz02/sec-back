@@ -2,6 +2,7 @@ package com.prd.seccontrol.model.entity;
 
 import com.prd.seccontrol.model.types.ZoneType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -13,7 +14,7 @@ public class EmployeeUnitAssignment {
   @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
   private Long id;
   private Long employeeAssignmentMonthlyId;
-  @OneToOne
+  @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "employeeAssignmentMonthlyId", referencedColumnName = "id", updatable = false,
       insertable = false)
   private EmployeeAssignmentMonthly employeeAssignmentMonthly;

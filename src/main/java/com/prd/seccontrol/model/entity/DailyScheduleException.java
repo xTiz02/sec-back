@@ -13,8 +13,12 @@ public class DailyScheduleException {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
-  private Long dateGuardUnityAssignmentId;
+  private Long guardUnityScheduleAssignmentId;
 
+  @OneToOne
+  @JoinColumn(name = "guardUnityScheduleAssignmentId", referencedColumnName = "id", updatable = false,
+      insertable = false)
+  private GuardUnityScheduleAssignment guardUnityScheduleAssignment;
   private Long scheduleExceptionId;
 
   @OneToOne
@@ -27,12 +31,21 @@ public class DailyScheduleException {
   public DailyScheduleException() {
   }
 
-  public Long getDateGuardUnityAssignmentId() {
-    return dateGuardUnityAssignmentId;
+  public GuardUnityScheduleAssignment getGuardUnityScheduleAssignment() {
+    return guardUnityScheduleAssignment;
   }
 
-  public void setDateGuardUnityAssignmentId(Long dateGuardUnityAssignmentId) {
-    this.dateGuardUnityAssignmentId = dateGuardUnityAssignmentId;
+  public void setGuardUnityScheduleAssignment(
+      GuardUnityScheduleAssignment guardUnityScheduleAssignment) {
+    this.guardUnityScheduleAssignment = guardUnityScheduleAssignment;
+  }
+
+  public Long getGuardUnityScheduleAssignmentId() {
+    return guardUnityScheduleAssignmentId;
+  }
+
+  public void setGuardUnityScheduleAssignmentId(Long guardUnityScheduleAssignmentId) {
+    this.guardUnityScheduleAssignmentId = guardUnityScheduleAssignmentId;
   }
 
   public Long getId() {

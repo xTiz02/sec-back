@@ -1,5 +1,6 @@
 package com.prd.seccontrol.model.entity;
 
+import com.prd.seccontrol.model.types.GuardType;
 import jakarta.persistence.*;
 
 @Entity
@@ -14,6 +15,7 @@ public class Guard {
       updatable = false)
   private Employee employee;
   private String licenseNumber;
+  private GuardType guardType;
   private String photoUrl;
 
   public Guard() {
@@ -57,5 +59,13 @@ public class Guard {
 
   public void setPhotoUrl(String photoUrl) {
     this.photoUrl = photoUrl;
+  }
+
+  public GuardType getGuardType() {
+    return guardType;
+  }
+
+  public void setGuardType(GuardType guardType) {
+    this.guardType = guardType;
   }
 }

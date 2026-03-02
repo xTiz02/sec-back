@@ -1,6 +1,7 @@
 package com.prd.seccontrol.model.dto;
 
 import com.prd.seccontrol.model.types.Country;
+import com.prd.seccontrol.model.types.EmployeeType;
 import com.prd.seccontrol.model.types.Gender;
 import com.prd.seccontrol.model.types.IdentificationType;
 import java.time.LocalDate;
@@ -14,6 +15,7 @@ public record CreateEmployeeRequest(
     String documentNumber,
     Country country,
     Gender gender,
+    EmployeeType employeeType,
     IdentificationType identificationType,
     LocalDate birthDate,
     Long userId

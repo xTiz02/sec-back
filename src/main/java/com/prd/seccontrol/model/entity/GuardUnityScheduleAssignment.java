@@ -1,5 +1,6 @@
 package com.prd.seccontrol.model.entity;
 
+import com.prd.seccontrol.model.types.GuardType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -15,11 +16,12 @@ public class GuardUnityScheduleAssignment {
   @OneToOne
   @JoinColumn(name = "scheduleMonthlyId", referencedColumnName = "id", updatable = false, insertable = false)
   private ScheduleMonthly scheduleMonthly;
-  private Long guardTypeAssignmentId;
+  private Long guardAssignmentId;
   @OneToOne
-  @JoinColumn(name = "guardTypeAssignmentId", referencedColumnName = "id",insertable = false,
+  @JoinColumn(name = "guardAssignmentId", referencedColumnName = "id",insertable = false,
       updatable = false)
-  private GuardTypeAssignment guardTypeAssignment;
+  private GuardAssignment guardAssignment;
+  private GuardType guardType;
   private Long privateGuardId;
   @OneToOne
   @JoinColumn(name = "privateGuardId", referencedColumnName = "id",insertable = false,
@@ -55,21 +57,21 @@ public class GuardUnityScheduleAssignment {
     this.contractUnityId = contractUnityId;
   }
 
-  public GuardTypeAssignment getGuardTypeAssignment() {
-    return guardTypeAssignment;
+  public GuardAssignment getGuardTypeAssignment() {
+    return guardAssignment;
   }
 
   public void setGuardTypeAssignment(
-      GuardTypeAssignment guardTypeAssignment) {
-    this.guardTypeAssignment = guardTypeAssignment;
+      GuardAssignment guardAssignment) {
+    this.guardAssignment = guardAssignment;
   }
 
-  public Long getGuardTypeAssignmentId() {
-    return guardTypeAssignmentId;
+  public Long getGuardAssignmentId() {
+    return guardAssignmentId;
   }
 
-  public void setGuardTypeAssignmentId(Long guardTypeAssignmentId) {
-    this.guardTypeAssignmentId = guardTypeAssignmentId;
+  public void setGuardAssignmentId(Long guardAssignmentId) {
+    this.guardAssignmentId = guardAssignmentId;
   }
 
   public Long getId() {
@@ -123,6 +125,22 @@ public class GuardUnityScheduleAssignment {
 
   public Long getScheduleMonthlyId() {
     return scheduleMonthlyId;
+  }
+
+  public GuardAssignment getGuardAssignment() {
+    return guardAssignment;
+  }
+
+  public void setGuardAssignment(GuardAssignment guardAssignment) {
+    this.guardAssignment = guardAssignment;
+  }
+
+  public GuardType getGuardType() {
+    return guardType;
+  }
+
+  public void setGuardType(GuardType guardType) {
+    this.guardType = guardType;
   }
 
   public void setScheduleMonthlyId(Long scheduleMonthlyId) {

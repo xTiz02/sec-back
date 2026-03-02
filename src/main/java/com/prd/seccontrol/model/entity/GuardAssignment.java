@@ -1,6 +1,5 @@
 package com.prd.seccontrol.model.entity;
 
-import com.prd.seccontrol.model.types.GuardType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
@@ -10,7 +9,7 @@ import java.time.LocalDateTime;
 import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
-public class GuardTypeAssignment {
+public class GuardAssignment {
   @Id
   @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
   private Long id;
@@ -19,7 +18,7 @@ public class GuardTypeAssignment {
   @JoinColumn(name = "guardId", referencedColumnName = "id",insertable = false,
       updatable = false)
   private Guard guard;
-  private GuardType guardType;
+
   private Long employeeUnitAssignmentId;
   @OneToOne
   @JoinColumn(name = "employeeUnitAssignmentId", referencedColumnName = "id",insertable = false,
@@ -29,7 +28,7 @@ public class GuardTypeAssignment {
   @CreationTimestamp
   private LocalDateTime createdAt;
 
-  public GuardTypeAssignment() {
+  public GuardAssignment() {
   }
 
   public LocalDateTime getCreatedAt() {
@@ -79,14 +78,6 @@ public class GuardTypeAssignment {
 
   public void setGuard(Guard guard) {
     this.guard = guard;
-  }
-
-  public GuardType getGuardType() {
-    return guardType;
-  }
-
-  public void setGuardType(GuardType guardType) {
-    this.guardType = guardType;
   }
 
   public boolean isActive() {
