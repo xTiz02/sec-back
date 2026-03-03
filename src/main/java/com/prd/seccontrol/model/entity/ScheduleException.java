@@ -13,13 +13,19 @@ public class ScheduleException {
   @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
   private Long id;
 
+  private Long guardUnityScheduleAssignmentId;
+  @OneToOne
+  @JoinColumn(name = "guardUnityScheduleAssignmentId", referencedColumnName = "id", updatable = false,
+      insertable = false)
+  private GuardUnityScheduleAssignment guardUnityScheduleAssignment;
+  private String motive;
+  private String description;
   private Long dateGuardUnityAssignmentId;
   @OneToOne
   @JoinColumn(name = "dateGuardUnityAssignmentId", referencedColumnName = "id", updatable = false,
       insertable = false)
   private DateGuardUnityAssignment dateGuardUnityAssignment;
-  private String motive;
-  private String description;
+  private Integer orderIndex = 0;
   private ScheduleExceptionType scheduleExceptionType;
 
   public ScheduleException() {
@@ -58,6 +64,26 @@ public class ScheduleException {
     this.id = id;
   }
 
+  public Long getGuardUnityScheduleAssignmentId() {
+    return guardUnityScheduleAssignmentId;
+  }
+
+  public void setGuardUnityScheduleAssignmentId(Long guardUnityScheduleAssignmentId) {
+    this.guardUnityScheduleAssignmentId = guardUnityScheduleAssignmentId;
+  }
+
+  public GuardUnityScheduleAssignment getGuardUnityScheduleAssignment() {
+    return guardUnityScheduleAssignment;
+  }
+
+  public Long getDateGuardUnityAssignmentId() {
+    return dateGuardUnityAssignmentId;
+  }
+
+  public void setDateGuardUnityAssignmentId(Long dateGuardUnityAssignmentId) {
+    this.dateGuardUnityAssignmentId = dateGuardUnityAssignmentId;
+  }
+
   public DateGuardUnityAssignment getDateGuardUnityAssignment() {
     return dateGuardUnityAssignment;
   }
@@ -67,11 +93,16 @@ public class ScheduleException {
     this.dateGuardUnityAssignment = dateGuardUnityAssignment;
   }
 
-  public Long getDateGuardUnityAssignmentId() {
-    return dateGuardUnityAssignmentId;
+  public Integer getOrderIndex() {
+    return orderIndex;
   }
 
-  public void setDateGuardUnityAssignmentId(Long dateGuardUnityAssignmentId) {
-    this.dateGuardUnityAssignmentId = dateGuardUnityAssignmentId;
+  public void setOrderIndex(Integer orderIndex) {
+    this.orderIndex = orderIndex;
+  }
+
+  public void setGuardUnityScheduleAssignment(
+      GuardUnityScheduleAssignment guardUnityScheduleAssignment) {
+    this.guardUnityScheduleAssignment = guardUnityScheduleAssignment;
   }
 }

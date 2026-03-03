@@ -23,10 +23,6 @@ public class DateGuardUnityAssignment {
   @OneToOne
   @JoinColumn(name = "guardUnityScheduleAssignmentId", referencedColumnName = "id", updatable = false, insertable = false)
   private GuardUnityScheduleAssignment guardUnityScheduleAssignment;
-  private Long buyFreeDayId;
-  @OneToOne
-  @JoinColumn(name = "buyFreeDayId", referencedColumnName = "id", updatable = false, insertable = false)
-  private BuyFreeDay buyFreeDay; // cuando compran el dia libre. por defecto en null.
   private Long turnAndHourId;
   @OneToOne
   @JoinColumn(name = "turnAndHourId", referencedColumnName = "id", updatable = false, insertable = false)
@@ -35,18 +31,11 @@ public class DateGuardUnityAssignment {
   private Integer numDay;
   private LocalDate date;
   private ScheduleAssignmentType scheduleAssignmentType;
+  private LocalDate toDate;
   private boolean hasVacation;
   private boolean hasExceptions;
 
   public DateGuardUnityAssignment() {
-  }
-
-  public BuyFreeDay getBuyFreeDay() {
-    return buyFreeDay;
-  }
-
-  public void setBuyFreeDay(BuyFreeDay buyFreeDay) {
-    this.buyFreeDay = buyFreeDay;
   }
 
   public LocalDate getDate() {
@@ -57,20 +46,20 @@ public class DateGuardUnityAssignment {
     this.date = date;
   }
 
-  public DayOfMonth getDayOfMonth() {
-    return dayOfMonth;
-  }
-
-  public void setDayOfMonth(DayOfMonth dayOfMonth) {
-    this.dayOfMonth = dayOfMonth;
-  }
-
   public Long getDayOfMonthId() {
     return dayOfMonthId;
   }
 
   public void setDayOfMonthId(Long dayOfMonthId) {
     this.dayOfMonthId = dayOfMonthId;
+  }
+
+  public DayOfMonth getDayOfMonth() {
+    return dayOfMonth;
+  }
+
+  public void setDayOfMonth(DayOfMonth dayOfMonth) {
+    this.dayOfMonth = dayOfMonth;
   }
 
   public Long getTurnAndHourId() {
@@ -114,6 +103,13 @@ public class DateGuardUnityAssignment {
     this.id = id;
   }
 
+  public LocalDate getToDate() {
+    return toDate;
+  }
+
+  public void setToDate(LocalDate toDate) {
+    this.toDate = toDate;
+  }
 
   public GuardUnityScheduleAssignment getGuardUnityScheduleAssignment() {
     return guardUnityScheduleAssignment;
@@ -122,22 +118,6 @@ public class DateGuardUnityAssignment {
   public void setGuardUnityScheduleAssignment(
       GuardUnityScheduleAssignment guardUnityScheduleAssignment) {
     this.guardUnityScheduleAssignment = guardUnityScheduleAssignment;
-  }
-
-  public Long getBuyFreeDayId() {
-    return buyFreeDayId;
-  }
-
-  public void setBuyFreeDayId(Long buyFreeDayId) {
-    this.buyFreeDayId = buyFreeDayId;
-  }
-
-  public BuyFreeDay getFreeDay() {
-    return buyFreeDay;
-  }
-
-  public void setFreeDay(BuyFreeDay buyFreeDay) {
-    this.buyFreeDay = buyFreeDay;
   }
 
   public boolean isHasVacation() {
@@ -155,6 +135,23 @@ public class DateGuardUnityAssignment {
   public void setDayOfWeek(DayOfWeek dayOfWeek) {
     this.dayOfWeek = dayOfWeek;
   }
+
+//  public Long getUnityMonthSchedule() {
+//    return unityMonthSchedule;
+//  }
+//
+//  public void setUnityMonthSchedule(Long unityMonthSchedule) {
+//    this.unityMonthSchedule = unityMonthSchedule;
+//  }
+//
+//  public UnityMonthSchedule getUnityMonthScheduleObj() {
+//    return unityMonthScheduleObj;
+//  }
+//
+//  public void setUnityMonthScheduleObj(
+//      UnityMonthSchedule unityMonthScheduleObj) {
+//    this.unityMonthScheduleObj = unityMonthScheduleObj;
+//  }
 
   public boolean isHasExceptions() {
     return hasExceptions;
