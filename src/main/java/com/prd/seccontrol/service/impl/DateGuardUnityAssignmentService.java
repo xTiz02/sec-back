@@ -16,7 +16,6 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
-import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,7 +35,7 @@ public class DateGuardUnityAssignmentService {
 
   @Transactional
   public DateGuardUnityAssignmentDto createDateGuardUnityAssignment(
-      CreateDailyAssignmentRequest request) {
+      CreateDailyAssignmentRequest request, LocalDate dateTo) {
     LocalDate date = request.date();
     Integer year = date.getYear();
     Month monthEnum = date.getMonth();
@@ -49,6 +48,7 @@ public class DateGuardUnityAssignmentService {
     dgua.setDayOfWeek(DayOfWeek.fromJavaDayOfWeek(date.getDayOfWeek()));
     dgua.setNumDay(day);
     dgua.setDate(date);
+    dgua.setToDate(dateTo);
     dgua.setScheduleAssignmentType(request.scheduleAssignmentType());
     dgua.setHasVacation(false);
     dgua.setHasExceptions(false);
@@ -91,7 +91,7 @@ public class DateGuardUnityAssignmentService {
               ScheduleAssignmentType.FREE_DAY
           );
 
-          return createDateGuardUnityAssignment(dailyRequest);
+          return createDateGuardUnityAssignment(dailyRequest,null);
         })
         .toList();
 
@@ -101,31 +101,24 @@ public class DateGuardUnityAssignmentService {
   @Transactional
   public List<DateGuardUnityAssignmentDto> bulkCreateVacationAssignments(
       CreateBulkVacationRequest request) {
-    List<DateGuardUnityAssignment> existingVacationAssignments = dateGuardUnityAssignmentRepository
+    List<DateGuardUnityAssignment> existingAssignments = dateGuardUnityAssignmentRepository
         .findByGuardUnityScheduleAssignmentIdAndDateIsBetween(
-            request.guardUnityScheduleAssignmentId(), request.dateFrom(), request.dateTo());
+            request.guardUnityScheduleAssignmentId(), request.date(), request.toDate());
 
-    List<LocalDate> datesInRange = new ArrayList<>();
-    LocalDate currentDate = request.dateFrom();
-    while (!currentDate.isAfter(request.dateTo())) {
-      datesInRange.add(currentDate);
-      currentDate = currentDate.plusDays(1);
+    if (!existingAssignments.isEmpty()) {
+      // If there are existing assignments in the date range
+      return List.of();
     }
-    List<DateGuardUnityAssignmentDto> createdAssignments = datesInRange.stream()
-        .filter(date -> existingVacationAssignments.stream()
-            .noneMatch(existing -> existing.getDate().equals(date)))
-        .map(date -> {
-          CreateDailyAssignmentRequest dailyRequest = new CreateDailyAssignmentRequest(
-              date,
-              request.guardUnityScheduleAssignmentId(),
-              null, // turnAndHourId no es necesario para vacaciones
-              ScheduleAssignmentType.VACATIONAL
-          );
-          return  createDateGuardUnityAssignment(dailyRequest);
-        })
-        .toList();
 
-    return createdAssignments;
+    CreateDailyAssignmentRequest dailyRequest = new CreateDailyAssignmentRequest(
+        request.date(),
+        request.guardUnityScheduleAssignmentId(),
+        null, // turnAndHourId no es necesario para vacaciones
+        ScheduleAssignmentType.VACATIONAL);
+
+    DateGuardUnityAssignmentDto createdAssignment = createDateGuardUnityAssignment(dailyRequest, request.toDate());
+
+    return List.of(createdAssignment);
   }
 
 

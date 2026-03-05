@@ -39,7 +39,7 @@ public class DateGuardUnityAssignmentController {
   @PostMapping(SEConstants.SECURE_BASE_ENDPOINT + "/date-guard-unity-assignment")
   public DateGuardUnityAssignmentDto createDateGuardUnityAssignment(
       @RequestBody CreateDailyAssignmentRequest request) {
-    return dateGuardUnityAssignmentService.createDateGuardUnityAssignment(request);
+    return dateGuardUnityAssignmentService.createDateGuardUnityAssignment(request,null);
   }
 
   @PostMapping(SEConstants.SECURE_BASE_ENDPOINT + "/date-guard-unity-assignment/bulk-free-days")
@@ -48,7 +48,7 @@ public class DateGuardUnityAssignmentController {
     return dateGuardUnityAssignmentService.bulkCreateFreeDayAssignments(requests);
   }
 
-  @PostMapping(SEConstants.SECURE_BASE_ENDPOINT + "/date-guard-unity-assignment/bulk-vacations")
+  @PostMapping(SEConstants.SECURE_BASE_ENDPOINT + "/date-guard-unity-assignment/vacation")
   public List<DateGuardUnityAssignmentDto> bulkCreateVacationAssignments(
       @RequestBody CreateBulkVacationRequest requests) {
     return dateGuardUnityAssignmentService.bulkCreateVacationAssignments(requests);
@@ -56,6 +56,12 @@ public class DateGuardUnityAssignmentController {
 
   @DeleteMapping(SEConstants.SECURE_BASE_ENDPOINT + "/date-guard-unity-assignment/{dateGuardUnityAssignmentId}")
   public Long deleteDateGuardUnityAssignment(@PathVariable Long dateGuardUnityAssignmentId) {
+    dateGuardUnityAssignmentRepository.deleteById(dateGuardUnityAssignmentId);
+    return dateGuardUnityAssignmentId;
+  }
+
+  @DeleteMapping(SEConstants.SECURE_BASE_ENDPOINT + "/date-guard-unity-assignment/vacation/{dateGuardUnityAssignmentId}")
+  public Long deleteDateGuardUnityAssignmentVacation(@PathVariable Long dateGuardUnityAssignmentId) {
     dateGuardUnityAssignmentRepository.deleteById(dateGuardUnityAssignmentId);
     return dateGuardUnityAssignmentId;
   }

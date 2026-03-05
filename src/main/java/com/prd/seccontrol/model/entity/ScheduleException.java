@@ -2,6 +2,7 @@ package com.prd.seccontrol.model.entity;
 
 import com.prd.seccontrol.model.types.ScheduleExceptionType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
@@ -21,10 +22,14 @@ public class ScheduleException {
   private String motive;
   private String description;
   private Long dateGuardUnityAssignmentId;
-  @OneToOne
+  @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "dateGuardUnityAssignmentId", referencedColumnName = "id", updatable = false,
       insertable = false)
   private DateGuardUnityAssignment dateGuardUnityAssignment;
+  private Long scheduleMonthlyId;
+  @OneToOne
+  @JoinColumn(name = "scheduleMonthlyId", referencedColumnName = "id", updatable = false, insertable = false)
+  private ScheduleMonthly scheduleMonthly;
   private Integer orderIndex = 0;
   private ScheduleExceptionType scheduleExceptionType;
 
@@ -91,6 +96,22 @@ public class ScheduleException {
   public void setDateGuardUnityAssignment(
       DateGuardUnityAssignment dateGuardUnityAssignment) {
     this.dateGuardUnityAssignment = dateGuardUnityAssignment;
+  }
+
+  public ScheduleMonthly getScheduleMonthly() {
+    return scheduleMonthly;
+  }
+
+  public void setScheduleMonthly(ScheduleMonthly scheduleMonthly) {
+    this.scheduleMonthly = scheduleMonthly;
+  }
+
+  public Long getScheduleMonthlyId() {
+    return scheduleMonthlyId;
+  }
+
+  public void setScheduleMonthlyId(Long scheduleMonthlyId) {
+    this.scheduleMonthlyId = scheduleMonthlyId;
   }
 
   public Integer getOrderIndex() {

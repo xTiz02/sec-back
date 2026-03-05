@@ -4,6 +4,7 @@ import com.prd.seccontrol.model.entity.DateGuardUnityAssignment;
 import com.prd.seccontrol.model.entity.DayOfMonth;
 import com.prd.seccontrol.model.types.DayOfWeek;
 import com.prd.seccontrol.model.types.ScheduleAssignmentType;
+import java.time.LocalDate;
 
 public record DateGuardUnityAssignmentDto(
     Long id,
@@ -15,7 +16,8 @@ public record DateGuardUnityAssignmentDto(
     TurnAndHourDto turnAndHour,
     DayOfWeek dayOfWeek,
     Integer numDay,
-    String date,
+    LocalDate date,
+    LocalDate toDate,
     ScheduleAssignmentType scheduleAssignmentType,
     Boolean hasVacation,
     Boolean hasExceptions
@@ -28,10 +30,11 @@ public record DateGuardUnityAssignmentDto(
         dateGuardUnityAssignment.getGuardUnityScheduleAssignmentId(),
         null,
         dateGuardUnityAssignment.getTurnAndHourId(),
-        null,
+        dateGuardUnityAssignment.getTurnAndHour() != null ? new TurnAndHourDto(dateGuardUnityAssignment.getTurnAndHour()) : null,
         dateGuardUnityAssignment.getDayOfWeek(),
         dateGuardUnityAssignment.getNumDay(),
-        dateGuardUnityAssignment.getDate() != null ? dateGuardUnityAssignment.getDate().toString() : null,
+        dateGuardUnityAssignment.getDate() != null ? dateGuardUnityAssignment.getDate() : null,
+        dateGuardUnityAssignment.getToDate() != null ? dateGuardUnityAssignment.getToDate() : null,
         dateGuardUnityAssignment.getScheduleAssignmentType(),
         dateGuardUnityAssignment.isHasVacation(),
         dateGuardUnityAssignment.isHasExceptions()
