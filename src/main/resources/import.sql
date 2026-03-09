@@ -22,7 +22,8 @@
 # INSERT INTO user_security_profile(user_id, security_profile_id) VALUES (1, 1);
 #
 # INSERT INTO employee(id, user_id, first_name, last_name, email, address, document_number,mobile_phone, birth_date, country, gender, identification_type, employee_type) VALUES (1, 1, 'Raul', 'Alfonso Diaz', 'test@gmail.com', 'Lima Peru Mz b4 lt 3', '72700916','913249837', '1990-01-01', 0, 0, 0, 0);
-#
+# INSERT INTO seccontrol.employee (birth_date, country, employee_type, gender, identification_type, id, user_id, address, document_number, email, first_name, last_name, mobile_phone) VALUES ('2003-10-12', 0, 3, 0, 0, 2, 1, null, '73627849', 'cesar6201@gmail.com', 'Cesar', 'Calopino', null);
+
 # INSERT INTO seccontrol.turn_template (num_guards, time_from, time_to, turn_type, id, name) VALUES (4, '08:00:00', '18:00:00', 0, 1, 'Turno Mañana - Tarde');
 # INSERT INTO seccontrol.turn_template (num_guards, time_from, time_to, turn_type, id, name) VALUES (2, '19:32:00', '05:00:00', 1, 2, 'Turno Noche - Madrugada');
 #
@@ -42,3 +43,4 @@
 # INSERT INTO seccontrol.turn_and_hour (contract_schedule_unit_template_id, id, turn_template_id) VALUES (26, 18, 2);
 #
 # INSERT INTO seccontrol.guard (employee_id, id, license_number, photo_url, guard_type) VALUES (1, 1, 'LIC-2384280', null, 0);
+# INSERT INTO seccontrol.guard (guard_type, employee_id, id, license_number, photo_url) VALUES (3, 2, 2, 'LIC4384280', null);

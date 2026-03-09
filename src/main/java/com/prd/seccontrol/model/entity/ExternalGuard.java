@@ -2,15 +2,21 @@ package com.prd.seccontrol.model.entity;
 
 import com.prd.seccontrol.model.types.Country;
 import com.prd.seccontrol.model.types.Gender;
+import com.prd.seccontrol.model.types.IdentificationType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
-public class PrivateGuard {
+public class ExternalGuard {
   @Id
+  @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
   private Long id;
   private Long userId;
   @OneToOne
@@ -22,10 +28,16 @@ public class PrivateGuard {
   private String email;
   private Gender gender;
   private String documentNumber;
+  private IdentificationType identificationType;
   private Country country;
   private String businessName;
   private LocalDate birthDate;
-  public PrivateGuard() {
+  private boolean active;
+  @CreationTimestamp
+  private LocalDateTime createdAt;
+  @UpdateTimestamp
+  private LocalDateTime updatedAt;
+  public ExternalGuard() {
   }
 
   public String getDocumentNumber() {
@@ -118,6 +130,38 @@ public class PrivateGuard {
 
   public String getBusinessName() {
     return businessName;
+  }
+
+  public boolean isActive() {
+    return active;
+  }
+
+  public void setActive(boolean active) {
+    this.active = active;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public IdentificationType getIdentificationType() {
+    return identificationType;
+  }
+
+  public void setIdentificationType(IdentificationType identificationType) {
+    this.identificationType = identificationType;
+  }
+
+  public void setUpdatedAt(LocalDateTime updatedAt) {
+    this.updatedAt = updatedAt;
   }
 
   public void setBusinessName(String businessName) {

@@ -1,7 +1,10 @@
 package com.prd.seccontrol.repository;
 
 import com.prd.seccontrol.model.entity.TurnTemplate;
+import com.prd.seccontrol.model.types.TurnType;
+import java.time.LocalTime;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -16,4 +19,6 @@ public interface TurnTemplateRepository extends JpaRepository<TurnTemplate, Long
         WHERE tah.contractScheduleUnitTemplateId = :contractUnitTemplateId
 """)
   List<TurnTemplate> findTurnTemplatesByContractUnitTemplateId(Long contractUnitTemplateId);
+
+  Optional<TurnTemplate> findByTimeFromAndTimeToAndTurnTypeAndNumGuards(LocalTime timeFrom, LocalTime timeTo, TurnType turnType, Integer numGuards);
 }

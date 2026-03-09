@@ -23,6 +23,11 @@ public class EmployeeUnitAssignment {
   @JoinColumn(name = "unityId", referencedColumnName = "id", updatable = false,
       insertable = false)
   private Unity unity;
+  private Long specialServiceUnityId;
+  @OneToOne
+  @JoinColumn(name = "specialServiceUnityId", referencedColumnName = "id", updatable = false,
+      insertable = false)
+  private SpecialServiceUnity specialServiceUnity;
   private ZoneType zoneType;
 
   public EmployeeAssignmentMonthly getEmployeeAssignmentMonthly() {
@@ -68,6 +73,23 @@ public class EmployeeUnitAssignment {
 
   public Unity getUnity() {
     return unity;
+  }
+
+  public SpecialServiceUnity getSpecialServiceUnity() {
+    return specialServiceUnity;
+  }
+
+  public void setSpecialServiceUnity(
+      SpecialServiceUnity specialServiceUnity) {
+    this.specialServiceUnity = specialServiceUnity;
+  }
+
+  public Long getSpecialServiceUnityId() {
+    return specialServiceUnityId;
+  }
+
+  public void setSpecialServiceUnityId(Long specialServiceUnityId) {
+    this.specialServiceUnityId = specialServiceUnityId;
   }
 
   public void setUnity(Unity unity) {

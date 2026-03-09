@@ -46,6 +46,14 @@ public class DayOfMonth {
     this.createdAt = createdAt;
   }
 
+  public LocalDate getDate() {
+    return date;
+  }
+
+  public void setDate(LocalDate date) {
+    this.date = date;
+  }
+
   public Month getMonth() {
     return month;
   }

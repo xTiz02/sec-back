@@ -35,4 +35,7 @@ public interface DateGuardUnityAssignmentRepository extends
 
   List<DateGuardUnityAssignment> findByGuardUnityScheduleAssignmentIdAndDateIsBetween(
       Long guardUnityScheduleAssignmentId, LocalDate dateAfter, LocalDate dateBefore);
+
+  List<DateGuardUnityAssignment> findByGuardUnityScheduleAssignment_SpecialServiceUnityScheduleId(
+      Long specialServiceUnityScheduleId);
 }

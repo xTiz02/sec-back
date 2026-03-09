@@ -7,6 +7,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
 
 @Entity
 public class ScheduleException {
@@ -15,7 +17,7 @@ public class ScheduleException {
   private Long id;
 
   private Long guardUnityScheduleAssignmentId;
-  @OneToOne
+  @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "guardUnityScheduleAssignmentId", referencedColumnName = "id", updatable = false,
       insertable = false)
   private GuardUnityScheduleAssignment guardUnityScheduleAssignment;
@@ -32,6 +34,8 @@ public class ScheduleException {
   private ScheduleMonthly scheduleMonthly;
   private Integer orderIndex = 0;
   private ScheduleExceptionType scheduleExceptionType;
+  @CreationTimestamp
+  private LocalDateTime createdAt;
 
   public ScheduleException() {
   }
@@ -125,5 +129,13 @@ public class ScheduleException {
   public void setGuardUnityScheduleAssignment(
       GuardUnityScheduleAssignment guardUnityScheduleAssignment) {
     this.guardUnityScheduleAssignment = guardUnityScheduleAssignment;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
   }
 }

@@ -17,6 +17,10 @@ public class TurnAndHour {
   @JoinColumn(name = "contractScheduleUnitTemplateId", referencedColumnName = "id", updatable = false,
       insertable = false)
   private ContractScheduleUnitTemplate contractScheduleUnitTemplate;
+  private Long specialServiceUnityScheduleId;
+  @OneToOne
+  @JoinColumn(name = "specialServiceUnityScheduleId", referencedColumnName = "id", updatable = false, insertable = false)
+  private SpecialServiceUnitySchedule specialServiceUnitySchedule;
   private Long turnTemplateId;
   @OneToOne
   @JoinColumn(name = "turnTemplateId", referencedColumnName = "id", updatable = false,
@@ -61,6 +65,32 @@ public class TurnAndHour {
 
   public Long getTurnTemplateId() {
     return turnTemplateId;
+  }
+
+  public SpecialServiceUnitySchedule getSpecialServiceSchedule() {
+    return specialServiceUnitySchedule;
+  }
+
+  public void setSpecialServiceSchedule(
+      SpecialServiceUnitySchedule specialServiceUnitySchedule) {
+    this.specialServiceUnitySchedule = specialServiceUnitySchedule;
+  }
+
+  public SpecialServiceUnitySchedule getSpecialServiceUnitySchedule() {
+    return specialServiceUnitySchedule;
+  }
+
+  public void setSpecialServiceUnitySchedule(
+      SpecialServiceUnitySchedule specialServiceUnitySchedule) {
+    this.specialServiceUnitySchedule = specialServiceUnitySchedule;
+  }
+
+  public Long getSpecialServiceUnityScheduleId() {
+    return specialServiceUnityScheduleId;
+  }
+
+  public void setSpecialServiceUnityScheduleId(Long specialServiceUnityScheduleId) {
+    this.specialServiceUnityScheduleId = specialServiceUnityScheduleId;
   }
 
   public void setTurnTemplateId(Long turnTemplateId) {

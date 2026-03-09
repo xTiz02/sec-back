@@ -26,6 +26,11 @@ public class EmployeeAssignmentMonthly {
   @JoinColumn(name = "employeeId", referencedColumnName = "id", insertable = false,
       updatable = false)
   private Employee employee;
+  private Long specialServiceUnityScheduleId;
+  @OneToOne
+  @JoinColumn(name = "specialServiceUnityScheduleId", referencedColumnName = "id", updatable = false,
+      insertable = false)
+  private SpecialServiceUnitySchedule specialServiceUnitySchedule;
   private ZoneType zoneType;
   private Month month;
   private Integer year;
@@ -81,6 +86,23 @@ public class EmployeeAssignmentMonthly {
 
   public void setScheduleMonthlyId(Long scheduleMonthlyId) {
     this.scheduleMonthlyId = scheduleMonthlyId;
+  }
+
+  public Long getSpecialServiceUnityScheduleId() {
+    return specialServiceUnityScheduleId;
+  }
+
+  public void setSpecialServiceUnityScheduleId(Long specialServiceUnityScheduleId) {
+    this.specialServiceUnityScheduleId = specialServiceUnityScheduleId;
+  }
+
+  public SpecialServiceUnitySchedule getSpecialServiceUnitySchedule() {
+    return specialServiceUnitySchedule;
+  }
+
+  public void setSpecialServiceUnitySchedule(
+      SpecialServiceUnitySchedule specialServiceUnitySchedule) {
+    this.specialServiceUnitySchedule = specialServiceUnitySchedule;
   }
 
   public ZoneType getZoneType() {

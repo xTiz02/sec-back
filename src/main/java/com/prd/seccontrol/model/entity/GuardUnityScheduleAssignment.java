@@ -22,21 +22,16 @@ public class GuardUnityScheduleAssignment {
       updatable = false)
   private GuardAssignment guardAssignment;
   private GuardType guardType;
-  private Long privateGuardId;
-  @OneToOne
-  @JoinColumn(name = "privateGuardId", referencedColumnName = "id",insertable = false,
-      updatable = false)
-  private PrivateGuard privateGuard;
   private Long contractUnityId;
   @OneToOne
   @JoinColumn(name = "contractUnityId", referencedColumnName = "id",insertable = false,
       updatable = false)
   private ContractUnity contractUnity;
-  private Long specialServiceUnityId;
+  private Long specialServiceUnityScheduleId;
   @OneToOne
-  @JoinColumn(name = "specialServiceUnityId", referencedColumnName = "id",insertable = false,
+  @JoinColumn(name = "specialServiceUnityScheduleId", referencedColumnName = "id",insertable = false,
       updatable = false)
-  private SpecialServiceUnity specialServiceUnity;
+  private SpecialServiceUnitySchedule specialServiceUnitySchedule;
 
   public GuardUnityScheduleAssignment() {
   }
@@ -82,37 +77,21 @@ public class GuardUnityScheduleAssignment {
     this.id = id;
   }
 
-  public PrivateGuard getPrivateGuard() {
-    return privateGuard;
+  public Long getSpecialServiceUnityScheduleId() {
+    return specialServiceUnityScheduleId;
   }
 
-  public void setPrivateGuard(PrivateGuard privateGuard) {
-    this.privateGuard = privateGuard;
+  public void setSpecialServiceUnityScheduleId(Long specialServiceUnityScheduleId) {
+    this.specialServiceUnityScheduleId = specialServiceUnityScheduleId;
   }
 
-  public Long getPrivateGuardId() {
-    return privateGuardId;
+  public SpecialServiceUnitySchedule getSpecialServiceUnitySchedule() {
+    return specialServiceUnitySchedule;
   }
 
-  public void setPrivateGuardId(Long privateGuardId) {
-    this.privateGuardId = privateGuardId;
-  }
-
-  public SpecialServiceUnity getSpecialServiceUnity() {
-    return specialServiceUnity;
-  }
-
-  public void setSpecialServiceUnity(
-      SpecialServiceUnity specialServiceUnity) {
-    this.specialServiceUnity = specialServiceUnity;
-  }
-
-  public Long getSpecialServiceUnityId() {
-    return specialServiceUnityId;
-  }
-
-  public void setSpecialServiceUnityId(Long specialServiceUnityId) {
-    this.specialServiceUnityId = specialServiceUnityId;
+  public void setSpecialServiceUnitySchedule(
+      SpecialServiceUnitySchedule specialServiceUnitySchedule) {
+    this.specialServiceUnitySchedule = specialServiceUnitySchedule;
   }
 
   public ScheduleMonthly getScheduleMonthly() {

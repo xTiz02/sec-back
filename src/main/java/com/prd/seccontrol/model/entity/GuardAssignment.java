@@ -18,7 +18,11 @@ public class GuardAssignment {
   @JoinColumn(name = "guardId", referencedColumnName = "id",insertable = false,
       updatable = false)
   private Guard guard;
-
+  private Long externalGuardId;
+  @OneToOne
+  @JoinColumn(name = "externalGuardId", referencedColumnName = "id",insertable = false,
+      updatable = false)
+  private ExternalGuard externalGuard;
   private Long employeeUnitAssignmentId;
   @OneToOne
   @JoinColumn(name = "employeeUnitAssignmentId", referencedColumnName = "id",insertable = false,
@@ -29,6 +33,22 @@ public class GuardAssignment {
   private LocalDateTime createdAt;
 
   public GuardAssignment() {
+  }
+
+  public ExternalGuard getExternalGuard() {
+    return externalGuard;
+  }
+
+  public void setExternalGuard(ExternalGuard externalGuard) {
+    this.externalGuard = externalGuard;
+  }
+
+  public Long getExternalGuardId() {
+    return externalGuardId;
+  }
+
+  public void setExternalGuardId(Long externalGuardId) {
+    this.externalGuardId = externalGuardId;
   }
 
   public LocalDateTime getCreatedAt() {
