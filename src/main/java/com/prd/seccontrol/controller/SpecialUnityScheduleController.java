@@ -1,6 +1,8 @@
 package com.prd.seccontrol.controller;
 
 import com.prd.seccontrol.model.dto.CreateSpecialServiceScheduleRequest;
+import com.prd.seccontrol.model.dto.SpecialServiceDayAssignmentDto;
+import com.prd.seccontrol.model.dto.SpecialServiceGuardUnityAssignmentDto;
 import com.prd.seccontrol.model.dto.SpecialServiceScheduleDto;
 import com.prd.seccontrol.model.dto.SpecialServiceScheduleSummaryDto;
 import com.prd.seccontrol.model.entity.SpecialServiceUnitySchedule;
@@ -8,6 +10,8 @@ import com.prd.seccontrol.repository.SpecialServiceUnityScheduleRepository;
 import com.prd.seccontrol.service.impl.SearchService;
 import com.prd.seccontrol.service.impl.SpecialUnityScheduleService;
 import com.prd.seccontrol.util.SEConstants;
+import java.time.LocalDate;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,9 +48,24 @@ public class SpecialUnityScheduleController {
     return specialUnityScheduleService.createSpecialServiceUnitySchedule(request);
   }
 
-  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/special-service-schedule/{id}")
-  public SpecialServiceScheduleDto getSpecialServiceUnityScheduleById(@PathVariable Long id) {
+  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/special-service-schedule/{scheduleId}")
+  public SpecialServiceScheduleDto getSpecialServiceUnityScheduleById(@PathVariable Long scheduleId) {
 
-    return specialUnityScheduleService.getSpecialServiceUnitySchedule(id);
+    return specialUnityScheduleService.getSpecialServiceUnitySchedule(scheduleId);
+  }
+
+  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/special-service-schedule/{scheduleId}/guard-pool")
+  public List<SpecialServiceGuardUnityAssignmentDto> getSpecialServiceGuardsSchedulesById(@PathVariable Long scheduleId) {
+
+    return specialUnityScheduleService.getGuardAssignmentsForSpecialServiceUnitySchedule(scheduleId);
+  }
+
+  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/special-service-schedule/{scheduleId}/day-assignments")
+  public List<SpecialServiceDayAssignmentDto> getSpecialServiceGuardsSchedulesById(@PathVariable Long scheduleId, @RequestParam
+      LocalDate date) {
+
+    return specialUnityScheduleService.getSpecialServiceUnitySchedule(scheduleId).dayAssignments().stream().filter(
+        dayAssignment -> dayAssignment.date().equals(date)
+    ).toList();
   }
 }

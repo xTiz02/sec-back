@@ -1,6 +1,7 @@
 package com.prd.seccontrol.controller;
 
 import com.prd.seccontrol.model.dto.CreateScheduleExceptionRequest;
+import com.prd.seccontrol.model.dto.CreateSpecialServiceExceptionRequest;
 import com.prd.seccontrol.model.dto.ScheduleExceptionDto;
 import com.prd.seccontrol.repository.ScheduleExceptionRepository;
 import com.prd.seccontrol.service.impl.ScheduleExceptionService;
@@ -23,7 +24,8 @@ public class ScheduleExceptionController {
   @Autowired
   private ScheduleExceptionService scheduleExceptionService;
 
-  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/schedule-exception/by-date-assignment/{dateGuardUnityAssignmentId}")
+  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT
+      + "/schedule-exception/by-date-assignment/{dateGuardUnityAssignmentId}")
   public List<ScheduleExceptionDto> getScheduleExceptionsByDateGuardUnityAssignmentId(
       @PathVariable Long dateGuardUnityAssignmentId) {
     return scheduleExceptionRepository.findByDateGuardUnityAssignmentId(dateGuardUnityAssignmentId)
@@ -42,5 +44,13 @@ public class ScheduleExceptionController {
   public Long deleteScheduleException(@PathVariable Long scheduleExceptionId) {
     scheduleExceptionRepository.deleteById(scheduleExceptionId);
     return scheduleExceptionId;
+  }
+
+  //special service
+
+  @PostMapping(SEConstants.SECURE_BASE_ENDPOINT + "/schedule-exception/special-service")
+  public ScheduleExceptionDto createScheduleExceptionsForDateGuardUnityAssignment(
+      @RequestBody CreateSpecialServiceExceptionRequest request) {
+    return scheduleExceptionService.createSpecialServiceException(request);
   }
 }

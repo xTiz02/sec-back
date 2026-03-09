@@ -147,8 +147,8 @@ public class SpecialUnityScheduleService {
       turnAndHour = turnAndHourRepository.save(turnAndHour);
 
       GuardAssignment guardAssignment = new GuardAssignment();
-      guardAssignment.setGuardId(guard.getId());
-      guardAssignment.setExternalGuardId(externalGuard.getId());
+      guardAssignment.setGuardId(guard != null ? guard.getId() : null);
+      guardAssignment.setExternalGuardId(externalGuard != null ? externalGuard.getId() : null);
       guardAssignment.setActive(true);
       guardAssignment = guardAssignmentRepository.save(guardAssignment);
 
@@ -215,14 +215,11 @@ public class SpecialUnityScheduleService {
         .findByGuardUnityScheduleAssignment_SpecialServiceUnityScheduleId(schedule.getId())
         .stream()
         .map(dgua -> {
-          GuardUnityScheduleAssignment guardUnityScheduleAssignment = dgua.getGuardUnityScheduleAssignment();
-          GuardAssignment guardAssignment = guardUnityScheduleAssignment.getGuardAssignment();
           TurnAndHour turnAndHour = dgua.getTurnAndHour();
+          SpecialServiceGuardUnityAssignmentDto  ssgua = getGuardAssignmentForSpecialServiceUnitySchedule(dgua);
 
-          return new SpecialServiceDayAssignmentDto(dgua.getId(), dgua.getDate(),
-              new SpecialServiceGuardUnityAssignmentDto(guardUnityScheduleAssignment.getId(),
-                  guardUnityScheduleAssignment.getGuardType(),
-                  new GuardAssignmentDto(guardAssignment)), new TurnAndHourDto(turnAndHour));
+          return new SpecialServiceDayAssignmentDto(dgua.getId(), dgua.getDate(),ssgua
+              , new TurnAndHourDto(turnAndHour));
         })
         .toList();
 
@@ -232,5 +229,24 @@ public class SpecialUnityScheduleService {
         schedule.getTotalAssignments(), dayAssignmentDtos, schedule.getCreatedAt());
 
     return scheduleDto;
+  }
+
+  public List<SpecialServiceGuardUnityAssignmentDto> getGuardAssignmentsForSpecialServiceUnitySchedule(Long scheduleId) {
+    List<SpecialServiceGuardUnityAssignmentDto> guardUnityAssignmentDtos = dateGuardUnityAssignmentRepository
+        .findByGuardUnityScheduleAssignment_SpecialServiceUnityScheduleId(scheduleId)
+        .stream()
+        .map(this::getGuardAssignmentForSpecialServiceUnitySchedule)
+        .toList();
+
+    return guardUnityAssignmentDtos;
+  }
+
+  public SpecialServiceGuardUnityAssignmentDto getGuardAssignmentForSpecialServiceUnitySchedule(DateGuardUnityAssignment dgua) {
+    GuardUnityScheduleAssignment guardUnityScheduleAssignment = dgua.getGuardUnityScheduleAssignment();
+    GuardAssignment guardAssignment = guardUnityScheduleAssignment.getGuardAssignment();
+
+    return new SpecialServiceGuardUnityAssignmentDto(guardUnityScheduleAssignment.getId(),
+        guardUnityScheduleAssignment.getGuardType(),
+        new GuardAssignmentDto(guardAssignment));
   }
 }

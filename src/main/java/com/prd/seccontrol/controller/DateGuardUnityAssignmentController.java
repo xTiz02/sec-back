@@ -57,12 +57,14 @@ public class DateGuardUnityAssignmentController {
   @DeleteMapping(SEConstants.SECURE_BASE_ENDPOINT + "/date-guard-unity-assignment/{dateGuardUnityAssignmentId}")
   public Long deleteDateGuardUnityAssignment(@PathVariable Long dateGuardUnityAssignmentId) {
     dateGuardUnityAssignmentRepository.deleteById(dateGuardUnityAssignmentId);
+    //delete guardAssignment
     return dateGuardUnityAssignmentId;
   }
 
   @DeleteMapping(SEConstants.SECURE_BASE_ENDPOINT + "/date-guard-unity-assignment/vacation/{dateGuardUnityAssignmentId}")
   public Long deleteDateGuardUnityAssignmentVacation(@PathVariable Long dateGuardUnityAssignmentId) {
     dateGuardUnityAssignmentRepository.deleteById(dateGuardUnityAssignmentId);
+    //delete guardAssignment
     return dateGuardUnityAssignmentId;
   }
 
