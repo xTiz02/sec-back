@@ -21,7 +21,6 @@ public class ScheduleException {
   @JoinColumn(name = "guardUnityScheduleAssignmentId", referencedColumnName = "id", updatable = false,
       insertable = false)
   private GuardUnityScheduleAssignment guardUnityScheduleAssignment;
-  private String motive;
   private String description;
   private Long dateGuardUnityAssignmentId;
   @OneToOne(fetch = FetchType.LAZY)
@@ -55,14 +54,6 @@ public class ScheduleException {
   public void setScheduleExceptionType(
       ScheduleExceptionType scheduleExceptionType) {
     this.scheduleExceptionType = scheduleExceptionType;
-  }
-
-  public String getMotive() {
-    return motive;
-  }
-
-  public void setMotive(String motive) {
-    this.motive = motive;
   }
 
   public Long getId() {

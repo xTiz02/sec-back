@@ -47,6 +47,7 @@ public class GuardUnityScheduleAssignmentController {
     GuardUnityScheduleAssignment duga = new GuardUnityScheduleAssignment();
     GuardAssignment ga = new GuardAssignment();
     ga.setGuardId(request.guardId());
+    ga.setExternalGuardId(request.externalGuardId());
     ga.setActive(true);
     ga = guardAssignmentRepository.save(ga);
 
@@ -62,8 +63,11 @@ public class GuardUnityScheduleAssignmentController {
   @Transactional
   @DeleteMapping(SEConstants.SECURE_BASE_ENDPOINT + "/guard-unity-schedule/{id}")
   public Long deleteGuardUnityScheduleAssignment(@PathVariable Long id) {
+    GuardUnityScheduleAssignment gusa = guardUnityScheduleAssignmentRepository.findById(id)
+        .orElseThrow(() -> new RuntimeException("GuardUnityScheduleAssignment not found with id: " + id));
     dateGuardUnityAssignmentRepository.deleteByGuardUnityScheduleAssignmentId(id);
     guardUnityScheduleAssignmentRepository.deleteById(id);
+    guardAssignmentRepository.deleteById(gusa.getGuardAssignmentId());
     return id;
   }
 

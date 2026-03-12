@@ -3,14 +3,18 @@ package com.prd.seccontrol.service.impl;
 import com.prd.seccontrol.model.dto.CreateScheduleExceptionRequest;
 import com.prd.seccontrol.model.dto.CreateSpecialServiceExceptionRequest;
 import com.prd.seccontrol.model.dto.ScheduleExceptionDto;
+import com.prd.seccontrol.model.entity.DateGuardUnityAssignment;
 import com.prd.seccontrol.model.entity.GuardAssignment;
 import com.prd.seccontrol.model.entity.GuardUnityScheduleAssignment;
 import com.prd.seccontrol.model.entity.ScheduleException;
+import com.prd.seccontrol.repository.DateGuardUnityAssignmentRepository;
 import com.prd.seccontrol.repository.GuardAssignmentRepository;
 import com.prd.seccontrol.repository.GuardUnityScheduleAssignmentRepository;
 import com.prd.seccontrol.repository.ScheduleExceptionRepository;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class ScheduleExceptionService {
@@ -24,19 +28,23 @@ public class ScheduleExceptionService {
   @Autowired
   private GuardAssignmentRepository guardAssignmentRepository;
 
+  @Autowired
+  private DateGuardUnityAssignmentRepository dateGuardUnityAssignmentRepository;
+
+  @Transactional
   public ScheduleExceptionDto createScheduleException(CreateScheduleExceptionRequest request) {
     ScheduleException scheduleException = new ScheduleException();
     scheduleException.setGuardUnityScheduleAssignmentId(request.guardUnityScheduleAssignmentId());
-    scheduleException.setMotive(request.motive());
     scheduleException.setDescription(request.description());
     scheduleException.setDateGuardUnityAssignmentId(request.dateGuardUnityAssignmentId());
     scheduleException.setScheduleMonthlyId(request.scheduleMonthlyId());
     scheduleException.setScheduleExceptionType(request.scheduleExceptionType());
 
     ScheduleException savedException = scheduleExceptionRepository.save(scheduleException);
-    return new ScheduleExceptionDto(savedException);
+    return new ScheduleExceptionDto(savedException, false);
   }
 
+  @Transactional
   public ScheduleExceptionDto createSpecialServiceException(
       CreateSpecialServiceExceptionRequest request) {
     ScheduleException scheduleException = new ScheduleException();
@@ -55,12 +63,25 @@ public class ScheduleExceptionService {
       gusa = guardUnityScheduleAssignmentRepository.save(newGusa);
     }
     scheduleException.setGuardUnityScheduleAssignmentId(gusa.getId());
-    scheduleException.setMotive(request.motive());
     scheduleException.setDescription(request.description());
     scheduleException.setDateGuardUnityAssignmentId(request.dateGuardUnityAssignmentId());
     scheduleException.setScheduleExceptionType(request.scheduleExceptionType());
 
     ScheduleException savedException = scheduleExceptionRepository.save(scheduleException);
-    return new ScheduleExceptionDto(savedException);
+    return new ScheduleExceptionDto(savedException, true);
+  }
+
+  @Transactional
+  public Long deleteScheduleException(Long scheduleExceptionId) {
+    ScheduleException scheduleException = scheduleExceptionRepository.findById(scheduleExceptionId).orElse(null);
+    GuardUnityScheduleAssignment gusa = scheduleException.getGuardUnityScheduleAssignment();
+    List<DateGuardUnityAssignment> dateAssignments = dateGuardUnityAssignmentRepository.findByGuardUnityScheduleAssignmentId(gusa.getId());
+    int dateAssignmentCount = dateAssignments.size();
+    scheduleExceptionRepository.deleteById(scheduleExceptionId);
+    if(dateAssignmentCount == 0) {
+      guardUnityScheduleAssignmentRepository.deleteById(scheduleExceptionId);
+      guardAssignmentRepository.deleteById(gusa.getGuardAssignmentId());
+    }
+    return scheduleExceptionId;
   }
 }

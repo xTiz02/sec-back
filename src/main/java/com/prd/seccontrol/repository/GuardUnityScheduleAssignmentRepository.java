@@ -15,10 +15,14 @@ public interface GuardUnityScheduleAssignmentRepository extends
       Long scheduleMonthlyId);
 
   @Query("""
-      SELECT gus FROM GuardUnityScheduleAssignment gus
-      WHERE gus.guardAssignment.guardId = :guardId OR gus.guardAssignment.externalGuardId = :externalGuardId
-      AND gus.specialServiceUnityScheduleId = :specialServiceUnityScheduleId
-      """)
-  Optional<GuardUnityScheduleAssignment> findByGuardIdAndSpecialServiceUnityScheduleId(Long guardId,
-      Long externalGuardId, Long specialServiceUnityScheduleId);
+    SELECT gus FROM GuardUnityScheduleAssignment gus
+    WHERE (gus.guardAssignment.guardId = :guardId
+        OR gus.guardAssignment.externalGuardId = :externalGuardId)
+    AND gus.specialServiceUnityScheduleId = :specialServiceUnityScheduleId
+    """)
+  Optional<GuardUnityScheduleAssignment> findByGuardIdAndSpecialServiceUnityScheduleId(
+      Long guardId,
+      Long externalGuardId,
+      Long specialServiceUnityScheduleId
+  );
 }

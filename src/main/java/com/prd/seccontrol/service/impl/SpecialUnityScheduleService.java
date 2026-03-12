@@ -146,21 +146,27 @@ public class SpecialUnityScheduleService {
       turnAndHour.setSpecialServiceUnityScheduleId(schedule.getId());
       turnAndHour = turnAndHourRepository.save(turnAndHour);
 
-      GuardAssignment guardAssignment = new GuardAssignment();
-      guardAssignment.setGuardId(guard != null ? guard.getId() : null);
-      guardAssignment.setExternalGuardId(externalGuard != null ? externalGuard.getId() : null);
-      guardAssignment.setActive(true);
-      guardAssignment = guardAssignmentRepository.save(guardAssignment);
+      GuardUnityScheduleAssignment existingAssignment = guardUnityScheduleAssignmentRepository.findByGuardIdAndSpecialServiceUnityScheduleId(
+          assignment.guardId(), assignment.externalGuardId(), schedule.getId()).orElse(null);
 
-      GuardUnityScheduleAssignment guardUnityScheduleAssignment = new GuardUnityScheduleAssignment();
-      guardUnityScheduleAssignment.setSpecialServiceUnityScheduleId(schedule.getId());
-      guardUnityScheduleAssignment.setGuardAssignmentId(guardAssignment.getId());
-      guardUnityScheduleAssignment.setGuardType(assignment.guardType());
-      guardUnityScheduleAssignment = guardUnityScheduleAssignmentRepository.save(
-          guardUnityScheduleAssignment);
+      if (existingAssignment == null) {
+        GuardAssignment guardAssignment = new GuardAssignment();
+        guardAssignment.setGuardId(guard != null ? guard.getId() : null);
+        guardAssignment.setExternalGuardId(externalGuard != null ? externalGuard.getId() : null);
+        guardAssignment.setActive(true);
+        guardAssignment = guardAssignmentRepository.save(guardAssignment);
+
+        GuardUnityScheduleAssignment guardUnityScheduleAssignment = new GuardUnityScheduleAssignment();
+        guardUnityScheduleAssignment.setSpecialServiceUnityScheduleId(schedule.getId());
+        guardUnityScheduleAssignment.setGuardAssignmentId(guardAssignment.getId());
+        guardUnityScheduleAssignment.setGuardType(assignment.guardType());
+
+        existingAssignment = guardUnityScheduleAssignmentRepository.save(
+            guardUnityScheduleAssignment);
+      }
 
       DateGuardUnityAssignment dgua = new DateGuardUnityAssignment();
-      dgua.setGuardUnityScheduleAssignmentId(guardUnityScheduleAssignment.getId());
+      dgua.setGuardUnityScheduleAssignmentId(existingAssignment.getId());
       dgua.setTurnAndHourId(turnAndHour.getId());
       dgua.setDayOfWeek(DayOfWeek.fromJavaDayOfWeek(assignmentDate.getDayOfWeek()));
       dgua.setNumDay(day);
@@ -189,9 +195,9 @@ public class SpecialUnityScheduleService {
       DateGuardUnityAssignment dguaSaved = dateGuardUnityAssignmentRepository.save(dgua);
       SpecialServiceDayAssignmentDto assignmentDto = new SpecialServiceDayAssignmentDto(
           dguaSaved.getId(), dguaSaved.getDate(), new SpecialServiceGuardUnityAssignmentDto(
-          guardUnityScheduleAssignment.getId(), guardUnityScheduleAssignment.getGuardType(),
+          existingAssignment.getId(), existingAssignment.getGuardType(),
           new GuardAssignmentDto(
-              guardAssignmentRepository.findById(guardUnityScheduleAssignment.getId())
+              guardAssignmentRepository.findById(existingAssignment.getId())
                   .orElseThrow(() -> new RuntimeException(
                       "Guard Assignment not found with id: ")))), new TurnAndHourDto(turnAndHour));
 

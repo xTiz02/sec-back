@@ -30,7 +30,7 @@ public class ScheduleExceptionController {
       @PathVariable Long dateGuardUnityAssignmentId) {
     return scheduleExceptionRepository.findByDateGuardUnityAssignmentId(dateGuardUnityAssignmentId)
         .stream()
-        .map(ScheduleExceptionDto::new)
+        .map(e -> new ScheduleExceptionDto(e, true))
         .toList();
   }
 
@@ -42,8 +42,8 @@ public class ScheduleExceptionController {
 
   @DeleteMapping(SEConstants.SECURE_BASE_ENDPOINT + "/schedule-exception/{scheduleExceptionId}")
   public Long deleteScheduleException(@PathVariable Long scheduleExceptionId) {
-    scheduleExceptionRepository.deleteById(scheduleExceptionId);
-    return scheduleExceptionId;
+    //verificar si el guardia no tien otras asignaciones y eliminar du guarAssintement
+    return scheduleExceptionService.deleteScheduleException(scheduleExceptionId);
   }
 
   //special service

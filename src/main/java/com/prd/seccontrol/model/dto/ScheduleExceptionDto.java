@@ -6,6 +6,7 @@ import com.prd.seccontrol.model.types.ScheduleExceptionType;
 public record ScheduleExceptionDto(
     Long id,
     Long guardUnityScheduleAssignmentId,
+    GuardUnityScheduleAssignmentDto guardUnityScheduleAssignment,
     String motive,
     String description,
     Long dateGuardUnityAssignmentId,
@@ -13,10 +14,15 @@ public record ScheduleExceptionDto(
     Integer orderIndex,
     ScheduleExceptionType scheduleExceptionType
 ) {
-  public ScheduleExceptionDto(ScheduleException scheduleException) {
+  public ScheduleExceptionDto(ScheduleException scheduleException, boolean includeGuardUnityScheduleAssignment) {
     this(scheduleException.getId(), scheduleException.getGuardUnityScheduleAssignmentId(),
+        includeGuardUnityScheduleAssignment && scheduleException.getGuardUnityScheduleAssignment() != null
+            ? new GuardUnityScheduleAssignmentDto(scheduleException.getGuardUnityScheduleAssignment())
+            : null,
         scheduleException.getMotive(), scheduleException.getDescription(),
         scheduleException.getDateGuardUnityAssignmentId(), scheduleException.getScheduleMonthlyId(),
         scheduleException.getOrderIndex(), scheduleException.getScheduleExceptionType());
   }
+
+
 }
