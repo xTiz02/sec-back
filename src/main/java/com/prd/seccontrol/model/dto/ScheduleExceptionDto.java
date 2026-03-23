@@ -7,7 +7,6 @@ public record ScheduleExceptionDto(
     Long id,
     Long guardUnityScheduleAssignmentId,
     GuardUnityScheduleAssignmentDto guardUnityScheduleAssignment,
-    String motive,
     String description,
     Long dateGuardUnityAssignmentId,
     Long scheduleMonthlyId,
@@ -19,7 +18,7 @@ public record ScheduleExceptionDto(
         includeGuardUnityScheduleAssignment && scheduleException.getGuardUnityScheduleAssignment() != null
             ? new GuardUnityScheduleAssignmentDto(scheduleException.getGuardUnityScheduleAssignment())
             : null,
-        scheduleException.getMotive(), scheduleException.getDescription(),
+       scheduleException.getDescription(),
         scheduleException.getDateGuardUnityAssignmentId(), scheduleException.getScheduleMonthlyId(),
         scheduleException.getOrderIndex(), scheduleException.getScheduleExceptionType());
   }

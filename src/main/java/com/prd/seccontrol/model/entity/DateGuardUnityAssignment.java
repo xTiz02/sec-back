@@ -5,11 +5,22 @@ import com.prd.seccontrol.model.types.ScheduleAssignmentType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
+@Table(
+    indexes = {
+        @Index(name = "idx_dgua_date", columnList = "date"),
+        @Index(name = "idx_dgua_dayOfMonthId", columnList = "dayOfMonthId"),
+    }
+)
 public class DateGuardUnityAssignment {
 
   @Id
@@ -34,6 +45,11 @@ public class DateGuardUnityAssignment {
   private LocalDate toDate;
   private boolean hasVacation;
   private boolean hasExceptions;
+  private boolean hasExtraHours;
+  @CreationTimestamp
+  private LocalDateTime createdAt;
+  @UpdateTimestamp
+  private LocalDateTime updatedAt;
 
   public DateGuardUnityAssignment() {
   }
@@ -85,6 +101,30 @@ public class DateGuardUnityAssignment {
   public void setScheduleAssignmentType(
       ScheduleAssignmentType scheduleAssignmentType) {
     this.scheduleAssignmentType = scheduleAssignmentType;
+  }
+
+  public boolean isHasExtraHours() {
+    return hasExtraHours;
+  }
+
+  public void setHasExtraHours(boolean hasExtraHours) {
+    this.hasExtraHours = hasExtraHours;
+  }
+
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
+  }
+
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public void setUpdatedAt(LocalDateTime updatedAt) {
+    this.updatedAt = updatedAt;
   }
 
   public Integer getNumDay() {

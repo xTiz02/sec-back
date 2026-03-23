@@ -39,10 +39,15 @@ public class EmployeeService {
     employee.setBirthDate(request.birthDate() != null ? request.birthDate() : employee.getBirthDate());
     employee.setDocumentNumber(request.documentNumber() != null ? request.documentNumber() : employee.getDocumentNumber());
     employee.setMobilePhone(request.mobilePhone() != null ? request.mobilePhone() : employee.getMobilePhone());
-    employee.setUserId(request.userId() != null ? request.userId() : employee.getUserId());
     employee.setGender(request.gender() != null ? request.gender() : employee.getGender());
     employee.setIdentificationType(request.identificationType() != null ? request.identificationType() : employee.getIdentificationType());
     employee.setEmployeeType(request.employeeType() != null ? request.employeeType() : employee.getEmployeeType());
+
+    Employee existingUserIdEmployee = employeeRepository.findByUserId(request.userId()).orElse(null);
+    if (request.userId() != null && existingUserIdEmployee != null && !existingUserIdEmployee.getId().equals(id)) {
+      throw new RuntimeException("El userId ya está asociado a otro empleado.");
+    }
+    employee.setUserId(request.userId() != null ? request.userId() : employee.getUserId());
     return new EmployeeDto(employeeRepository.save(employee));
   }
 }

@@ -3,6 +3,8 @@ package com.prd.seccontrol.service.impl;
 import com.prd.seccontrol.model.dto.CreateTurnTemplateRequest;
 import com.prd.seccontrol.model.entity.TurnTemplate;
 import com.prd.seccontrol.repository.TurnTemplateRepository;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
@@ -76,5 +78,13 @@ public class TurnTemplateService {
     }
 
     return turnTemplateRepository.save(turnTemplate);
+  }
+
+  public LocalDateTime[] getShiftDateTimeRange(LocalDate today, TurnTemplate turnTemplate) {
+    LocalDateTime shiftStart = LocalDateTime.of(today, turnTemplate.getTimeFrom());
+    //if now is less than turnTemplate().getTimeFrom() get next day
+    LocalDate shiftDate = turnTemplate.getTimeTo().isBefore(turnTemplate.getTimeFrom()) ? today.plusDays(1) : today;
+    LocalDateTime shiftEnd = LocalDateTime.of(shiftDate, turnTemplate.getTimeTo());
+    return new LocalDateTime[]{shiftStart, shiftEnd};
   }
 }

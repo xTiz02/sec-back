@@ -31,6 +31,7 @@ import com.prd.seccontrol.repository.SpecialServiceUnityScheduleRepository;
 import com.prd.seccontrol.repository.TurnAndHourRepository;
 import com.prd.seccontrol.repository.TurnTemplateRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.util.ArrayList;
 import java.util.List;
@@ -138,6 +139,11 @@ public class SpecialUnityScheduleService {
         newTurnTemplate.setTimeTo(assignment.timeTo());
         newTurnTemplate.setTurnType(assignment.turnType());
         newTurnTemplate.setNumGuards(1);
+        LocalDateTime now = LocalDateTime.now();
+        // set format year-month-day-hour-minute-second
+        String name = String.format("%d-%02d-%02d-%02d-%02d", now.getYear(), now.getMonthValue(),
+            now.getDayOfMonth(), now.getHour(), now.getMinute());
+        newTurnTemplate.setName("SUS - " + name);
         turnTemplate = turnTemplateRepository.save(newTurnTemplate);
       }
 

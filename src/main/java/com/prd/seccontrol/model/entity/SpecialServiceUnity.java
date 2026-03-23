@@ -16,11 +16,38 @@ public class SpecialServiceUnity {
   private String unityName;
   private String unityDescription;
   private String address;
+  private Double latitude;
+  private Double longitude;
+  private Double rangeCoverage;
   private boolean active;
   @CreationTimestamp
   private LocalDateTime createdAt;
   @UpdateTimestamp
   private LocalDateTime updatedAt;
+
+  public Double getLatitude() {
+    return latitude;
+  }
+
+  public Double getRangeCoverage() {
+    return rangeCoverage;
+  }
+
+  public void setRangeCoverage(Double rangeCoverage) {
+    this.rangeCoverage = rangeCoverage;
+  }
+
+  public void setLatitude(Double latitude) {
+    this.latitude = latitude;
+  }
+
+  public Double getLongitude() {
+    return longitude;
+  }
+
+  public void setLongitude(Double longitude) {
+    this.longitude = longitude;
+  }
 
   public String getCode() {
     return code;

@@ -17,6 +17,9 @@ import com.prd.seccontrol.repository.ContractScheduleTemplateRepository;
 import com.prd.seccontrol.repository.ContractUnityRepository;
 import com.prd.seccontrol.repository.TurnAndHourRepository;
 import com.prd.seccontrol.repository.TurnTemplateRepository;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +45,9 @@ public class ContractScheduleService {
 
   @Autowired
   private ClientContractRepository clientContractRepository;
+
+  @Autowired
+  private TurnTemplateService turnTemplateService;
 
   public List<WeeklyScheduleSummaryDto> getContractScheduleByContractUnityId(
       Long clientContractId) {
@@ -105,8 +111,12 @@ public class ContractScheduleService {
     ClientContract clientContract = clientContractRepository.findById(request.contractId())
         .orElseThrow(() -> new RuntimeException(
             "Client Contract not found with id: " + request.contractId()));
-
     List<UnitWeeklySchedule> units = request.units();
+
+    for(UnitWeeklySchedule unit : units) {
+      verifyTurnTemplatesNotCollision(unit.days());
+    }
+
     List<ContractUnity> existingContractUnities = contractUnityRepository.findByClientContractId(clientContract.getId());
 
     // delete contract unity that are not in the request
@@ -300,6 +310,60 @@ public class ContractScheduleService {
     // only allow unique days of week
     if (days.size() != days.stream().distinct().count()) {
       throw new RuntimeException("Duplicate days of week are not allowed");
+    }
+  }
+
+  public void verifyTurnTemplatesNotCollision(List<DayTurnAssignment> assignments) {
+    LocalDate today = LocalDate.now();
+    List<Long> turnTemplateIds = assignments.stream()
+        .flatMap(d -> d.turnTemplateIds().stream())
+        .toList();
+
+    List<TurnTemplate> turnTemplates = turnTemplateRepository.findAllById(turnTemplateIds);
+
+    Map<DayOfWeek, List<TurnTemplate>> turnTypeMap = assignments.stream()
+        .collect(Collectors.toMap(
+            DayTurnAssignment::dayOfWeek,
+            d -> turnTemplates.stream()
+                .filter(t -> d.turnTemplateIds().contains(t.getId()))
+                .toList()
+        ));
+
+    for(Map.Entry<DayOfWeek, List<TurnTemplate>> entry : turnTypeMap.entrySet()) {
+      List<TurnTemplate> turns = entry.getValue();
+      Map<Long, LocalDateTime[]> turnDatesMap = turns.stream()
+          .collect(Collectors.toMap(
+              TurnTemplate::getId,
+              t -> turnTemplateService.getShiftDateTimeRange(today,t)
+          ));
+
+      for (Map.Entry<Long, LocalDateTime[]> entryA : turnDatesMap.entrySet()) {
+        LocalDateTime startA = entryA.getValue()[0];
+        LocalDateTime endA = entryA.getValue()[1];
+
+        LocalTime startATime = startA.toLocalTime();
+        LocalTime endATime = endA.toLocalTime();
+
+        for (Map.Entry<Long, LocalDateTime[]> entryB : turnDatesMap.entrySet()) {
+          if (entryA.getKey().equals(entryB.getKey())) continue;
+
+          LocalDateTime startB = entryB.getValue()[0];
+          LocalDateTime endB = entryB.getValue()[1];
+
+          LocalTime startBTime = startB.toLocalTime();
+          LocalTime endBTime = endB.toLocalTime();
+
+          // check if turn A overlaps with turn B
+          boolean overlap = startA.isBefore(endB) && startB.isBefore(endA);
+
+          if (overlap) {
+            throw new RuntimeException("Choque de turnos entre "
+                + startATime + "-" + endATime + " y " + startBTime + "-" + endBTime);
+          }
+        }
+      }
+
+
     }
   }
 }

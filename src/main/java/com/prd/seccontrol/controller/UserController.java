@@ -45,18 +45,18 @@ public class UserController {
   @Autowired
   private SecurityProfileRepository securityProfileRepository;
 
-  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/users/all")
+  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/user/all")
   public @ResponseBody Page<User> findAll(Pageable pageable) {
 
     return userRepository.findAll(pageable);
   }
 
-  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/users/{id}")
+  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/user/{id}")
   public @ResponseBody User findById(@PathVariable(value = "id") Long id) throws Exception {
     return userRepository.findById(id).orElseThrow(() -> new Exception("User not found with id: " + id));
   }
 
-  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/users/self")
+  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/user/self")
   public @ResponseBody User findSelf(Principal principal) throws Exception {
 
     Set<Long> securityProfileIdSet = new HashSet<>();
@@ -85,17 +85,17 @@ public class UserController {
     return user;
   }
 
-  @PostMapping(SEConstants.SECURE_BASE_ENDPOINT + "/users")
+  @PostMapping(SEConstants.SECURE_BASE_ENDPOINT + "/user")
   public @ResponseBody User create(@RequestBody CreateUserRequest user) {
     return userService.createUser(user);
   }
 
-  @PutMapping(SEConstants.SECURE_BASE_ENDPOINT + "/users/{id}")
+  @PutMapping(SEConstants.SECURE_BASE_ENDPOINT + "/user/{id}")
   public @ResponseBody User edit(@PathVariable(value = "id") Long id, @RequestBody UpdateUserRequest request) throws Exception {
     return userService.updateUser(id, request);
   }
 
-  @PutMapping(SEConstants.SECURE_BASE_ENDPOINT + "/users/self/{id}")
+  @PutMapping(SEConstants.SECURE_BASE_ENDPOINT + "/user/self/{id}")
   public @ResponseBody User editSelfPassword(@PathVariable(value = "id") Long id,
       @RequestBody UserPassword password, Principal principal) throws Exception {
 

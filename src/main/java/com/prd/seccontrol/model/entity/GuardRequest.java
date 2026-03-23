@@ -7,33 +7,66 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 @Entity
 public class GuardRequest {
   @Id
   @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
   private Long id;
-  private Long dateGuardUnityAssignmentId;
+  private Long guardAssistanceEventId;
   @OneToOne
-  @JoinColumn(name = "dateGuardUnityAssignmentId", referencedColumnName = "id", updatable = false,
+  @JoinColumn(name = "guardAssistanceEventId", referencedColumnName = "id", updatable = false,
       insertable = false)
-  private DateGuardUnityAssignment dateGuardUnityAssignment;
-  private String photoUrl;
+  private GuardAssistanceEvent guardAssistanceEvent;
+  private Long guardAssignmentId;
+  @OneToOne
+  @JoinColumn(name = "guardAssignmentId", referencedColumnName = "id", updatable = false,
+      insertable = false)
+  private GuardAssignment guardAssignment;
   private String description;
   private RequestType requestType;
-  private LocalDate date;
   private RequestStatus requestStatus;
+  @CreationTimestamp
+  private LocalDateTime createdAt;
+  @UpdateTimestamp
+  private LocalDateTime updatedAt;
 
   public GuardRequest() {
   }
 
-  public LocalDate getDate() {
-    return date;
+  public LocalDateTime getCreatedAt() {
+    return createdAt;
   }
 
-  public void setDate(LocalDate date) {
-    this.date = date;
+  public void setCreatedAt(LocalDateTime createdAt) {
+    this.createdAt = createdAt;
+  }
+
+  public LocalDateTime getUpdatedAt() {
+    return updatedAt;
+  }
+
+  public GuardAssignment getGuardAssignment() {
+    return guardAssignment;
+  }
+
+  public void setGuardAssignment(GuardAssignment guardAssignment) {
+    this.guardAssignment = guardAssignment;
+  }
+
+  public Long getGuardAssignmentId() {
+    return guardAssignmentId;
+  }
+
+  public void setGuardAssignmentId(Long guardAssignmentId) {
+    this.guardAssignmentId = guardAssignmentId;
+  }
+
+  public void setUpdatedAt(LocalDateTime updatedAt) {
+    this.updatedAt = updatedAt;
   }
 
   public RequestType getRequestType() {
@@ -52,14 +85,6 @@ public class GuardRequest {
     this.requestStatus = requestStatus;
   }
 
-  public String getPhotoUrl() {
-    return photoUrl;
-  }
-
-  public void setPhotoUrl(String photoUrl) {
-    this.photoUrl = photoUrl;
-  }
-
   public Long getId() {
     return id;
   }
@@ -76,20 +101,20 @@ public class GuardRequest {
     this.description = description;
   }
 
-  public Long getDateGuardUnityAssignmentId() {
-    return dateGuardUnityAssignmentId;
+  public GuardAssistanceEvent getGuardAssistanceEvent() {
+    return guardAssistanceEvent;
   }
 
-  public void setDateGuardUnityAssignmentId(Long dateGuardUnityAssignmentId) {
-    this.dateGuardUnityAssignmentId = dateGuardUnityAssignmentId;
+  public void setGuardAssistanceEvent(
+      GuardAssistanceEvent guardAssistanceEvent) {
+    this.guardAssistanceEvent = guardAssistanceEvent;
   }
 
-  public DateGuardUnityAssignment getDateGuardUnityAssignment() {
-    return dateGuardUnityAssignment;
+  public Long getGuardAssistanceEventId() {
+    return guardAssistanceEventId;
   }
 
-  public void setDateGuardUnityAssignment(
-      DateGuardUnityAssignment dateGuardUnityAssignment) {
-    this.dateGuardUnityAssignment = dateGuardUnityAssignment;
+  public void setGuardAssistanceEventId(Long guardAssistanceEventId) {
+    this.guardAssistanceEventId = guardAssistanceEventId;
   }
 }

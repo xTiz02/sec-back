@@ -11,6 +11,8 @@ import com.prd.seccontrol.model.types.DayOfWeek;
 import com.prd.seccontrol.model.types.ScheduleAssignmentType;
 import com.prd.seccontrol.repository.DateGuardUnityAssignmentRepository;
 import com.prd.seccontrol.repository.DayOfMonthRepository;
+import com.prd.seccontrol.repository.GuardAssignmentRepository;
+import com.prd.seccontrol.repository.GuardUnityScheduleAssignmentRepository;
 import com.prd.seccontrol.repository.WeekOfMonthRepository;
 import java.time.LocalDate;
 import java.time.Month;
@@ -33,6 +35,12 @@ public class DateGuardUnityAssignmentService {
   @Autowired
   private WeekOfMonthRepository weekOfMonthRepository;
 
+  @Autowired
+  private GuardUnityScheduleAssignmentRepository guardUnityScheduleAssignmentRepository;
+
+  @Autowired
+  private GuardAssignmentRepository guardAssignmentRepository;
+
   @Transactional
   public DateGuardUnityAssignmentDto createDateGuardUnityAssignment(
       CreateDailyAssignmentRequest request, LocalDate dateTo) {
@@ -41,6 +49,8 @@ public class DateGuardUnityAssignmentService {
     Month monthEnum = date.getMonth();
     Integer month = monthEnum.getValue();
     Integer day = date.getDayOfMonth();
+
+    //validar que el guardia no tenga otra asistencia en otra guardia para el mismo día y hora
 
     DateGuardUnityAssignment dgua = new DateGuardUnityAssignment();
     dgua.setGuardUnityScheduleAssignmentId(request.guardUnityScheduleAssignmentId());
@@ -91,7 +101,7 @@ public class DateGuardUnityAssignmentService {
               ScheduleAssignmentType.FREE_DAY
           );
 
-          return createDateGuardUnityAssignment(dailyRequest,null);
+          return createDateGuardUnityAssignment(dailyRequest, null);
         })
         .toList();
 
@@ -116,9 +126,28 @@ public class DateGuardUnityAssignmentService {
         null, // turnAndHourId no es necesario para vacaciones
         ScheduleAssignmentType.VACATIONAL);
 
-    DateGuardUnityAssignmentDto createdAssignment = createDateGuardUnityAssignment(dailyRequest, request.toDate());
+    DateGuardUnityAssignmentDto createdAssignment = createDateGuardUnityAssignment(dailyRequest,
+        request.toDate());
 
     return List.of(createdAssignment);
+  }
+
+  @Transactional
+  public Long deleteDateGuardUnityAssignment(Long id) {
+    DateGuardUnityAssignment assignment = dateGuardUnityAssignmentRepository.findById(id)
+        .orElseThrow(
+            () -> new RuntimeException("DateGuardUnityAssignment not found with id: " + id));
+
+    List<DateGuardUnityAssignment> dateGuardUnityAssignments = dateGuardUnityAssignmentRepository
+        .findByGuardUnityScheduleAssignmentId(
+            assignment.getGuardUnityScheduleAssignmentId());
+
+    dateGuardUnityAssignmentRepository.deleteById(id);
+    if (dateGuardUnityAssignments.size() == 1) {
+      guardUnityScheduleAssignmentRepository.deleteById(assignment.getGuardUnityScheduleAssignmentId());
+      guardAssignmentRepository.deleteById(assignment.getGuardUnityScheduleAssignment().getGuardAssignmentId());
+    }
+    return id;
   }
 
 
