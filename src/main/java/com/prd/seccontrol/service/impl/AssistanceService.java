@@ -250,6 +250,7 @@ public class AssistanceService {
     }
 
     if (request.assistanceType().equals(AssistanceType.EXIT)) {
+      dateGuardUnityAssignmentRepository.updateFinalizedByIds(true, List.of(request.dateGuardUnityAssignmentId()));
       orderNumber = 3;
       //if mark is after shift end time plus 15 min, is late
       isLate = nowDateTime.isAfter(shiftEndDateTime.plusMinutes(15));

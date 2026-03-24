@@ -2,6 +2,7 @@ package com.prd.seccontrol.service.impl;
 
 import com.prd.seccontrol.model.dto.CreateScheduleExceptionRequest;
 import com.prd.seccontrol.model.dto.CreateSpecialServiceExceptionRequest;
+import com.prd.seccontrol.model.dto.DateGuardUnityAssignmentSimpleInfo;
 import com.prd.seccontrol.model.dto.ScheduleExceptionDto;
 import com.prd.seccontrol.model.entity.DateGuardUnityAssignment;
 import com.prd.seccontrol.model.entity.GuardAssignment;
@@ -36,10 +37,10 @@ public class ScheduleExceptionService {
 
     GuardUnityScheduleAssignment gusa = guardUnityScheduleAssignmentRepository.findByGuardIdAndScheduleMonthlyId(
         request.guardId(), request.externalGuardId(), request.scheduleMonthlyId()).orElse(null);
-    DateGuardUnityAssignment dateAssignment = dateGuardUnityAssignmentRepository.findById(
+    DateGuardUnityAssignmentSimpleInfo dateAssignment = dateGuardUnityAssignmentRepository.findDtoByIdV2(
         request.dateGuardUnityAssignmentId()).orElseThrow(() -> new RuntimeException("DateGuardUnityAssignment not found with id: " + request.dateGuardUnityAssignmentId()));
 
-    List<ScheduleException> existingException = scheduleExceptionRepository.findByDateGuardUnityAssignmentId(dateAssignment.getId());
+    List<ScheduleException> existingException = scheduleExceptionRepository.findByDateGuardUnityAssignmentId(dateAssignment.id());
     if(!existingException.isEmpty()) {
       throw new RuntimeException("Ya existe una excepción para esta asignación en la fecha especificada.");
     }
@@ -55,7 +56,7 @@ public class ScheduleExceptionService {
       newGusa.setGuardType(request.guardType());
       newGusa.setScheduleMonthlyId(request.scheduleMonthlyId());
       newGusa.setContractUnityId(
-          dateAssignment.getGuardUnityScheduleAssignment().getContractUnityId());
+          dateAssignment.contractUnityId());
       gusa = guardUnityScheduleAssignmentRepository.save(newGusa);
     }
     ScheduleException scheduleException = new ScheduleException();
@@ -66,8 +67,8 @@ public class ScheduleExceptionService {
     scheduleException.setScheduleExceptionType(request.scheduleExceptionType());
 
     ScheduleException savedException = scheduleExceptionRepository.save(scheduleException);
-    if (!dateAssignment.isHasExceptions()) {
-      dateGuardUnityAssignmentRepository.updateHasExceptionsById(true, dateAssignment.getId());
+    if (!dateAssignment.hasExceptions()) {
+      dateGuardUnityAssignmentRepository.updateHasExceptionsById(true, dateAssignment.id());
     }
     return new ScheduleExceptionDto(savedException, false);
   }
@@ -78,10 +79,10 @@ public class ScheduleExceptionService {
     ScheduleException scheduleException = new ScheduleException();
     GuardUnityScheduleAssignment gusa = guardUnityScheduleAssignmentRepository.findByGuardIdAndSpecialServiceUnityScheduleId(
         request.guardId(), request.externalGuardId(), request.scheduleId()).orElse(null);
-    DateGuardUnityAssignment dateAssignment = dateGuardUnityAssignmentRepository.findById(
+    DateGuardUnityAssignmentSimpleInfo dateAssignment = dateGuardUnityAssignmentRepository.findDtoById(
         request.dateGuardUnityAssignmentId()).orElseThrow(() -> new RuntimeException("DateGuardUnityAssignment not found with id: " + request.dateGuardUnityAssignmentId()));
 
-    List<ScheduleException> existingException = scheduleExceptionRepository.findByDateGuardUnityAssignmentId(dateAssignment.getId());
+    List<ScheduleException> existingException = scheduleExceptionRepository.findByDateGuardUnityAssignmentId(dateAssignment.id());
     if(!existingException.isEmpty()) {
       throw new RuntimeException("Ya existe una excepción para esta asignación en la fecha especificada.");
     }
@@ -104,8 +105,8 @@ public class ScheduleExceptionService {
     scheduleException.setScheduleExceptionType(request.scheduleExceptionType());
 
     ScheduleException savedException = scheduleExceptionRepository.save(scheduleException);
-    if (!dateAssignment.isHasExceptions()) {
-      dateGuardUnityAssignmentRepository.updateHasExceptionsById(true, dateAssignment.getId());
+    if (!dateAssignment.hasExceptions()) {
+      dateGuardUnityAssignmentRepository.updateHasExceptionsById(true, dateAssignment.id());
     }
     return new ScheduleExceptionDto(savedException, true);
   }
@@ -115,7 +116,7 @@ public class ScheduleExceptionService {
     ScheduleException scheduleException = scheduleExceptionRepository.findById(scheduleExceptionId)
         .orElse(null);
     GuardUnityScheduleAssignment gusa = scheduleException.getGuardUnityScheduleAssignment();
-    List<DateGuardUnityAssignment> dateAssignments = dateGuardUnityAssignmentRepository.findByGuardUnityScheduleAssignmentId(
+    List<DateGuardUnityAssignmentSimpleInfo> dateAssignments = dateGuardUnityAssignmentRepository.findDtoByGuardUnityScheduleAssignment(
         gusa.getId());
     int dateAssignmentCount = dateAssignments.size();
     scheduleExceptionRepository.deleteById(scheduleExceptionId);

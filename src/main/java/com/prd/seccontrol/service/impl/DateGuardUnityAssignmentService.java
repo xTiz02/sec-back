@@ -4,6 +4,7 @@ import com.prd.seccontrol.model.dto.CreateBulkFreeDayRequest;
 import com.prd.seccontrol.model.dto.CreateBulkVacationRequest;
 import com.prd.seccontrol.model.dto.CreateDailyAssignmentRequest;
 import com.prd.seccontrol.model.dto.DateGuardUnityAssignmentDto;
+import com.prd.seccontrol.model.dto.DateGuardUnityAssignmentSimpleInfo;
 import com.prd.seccontrol.model.entity.DateGuardUnityAssignment;
 import com.prd.seccontrol.model.entity.DayOfMonth;
 import com.prd.seccontrol.model.entity.WeekOfMonth;
@@ -51,7 +52,11 @@ public class DateGuardUnityAssignmentService {
     Integer day = date.getDayOfMonth();
 
     //validar que el guardia no tenga otra asistencia en otra guardia para el mismo día y hora
-
+    List<DateGuardUnityAssignmentSimpleInfo> existingAssignments = dateGuardUnityAssignmentRepository
+        .findByGuardUnityScheduleAssignmentIdAndDate(request.guardUnityScheduleAssignmentId(), date);
+    if (!existingAssignments.isEmpty()) {
+      throw new RuntimeException("El guardia ya tiene una asignación para el día " + date);
+    }
     DateGuardUnityAssignment dgua = new DateGuardUnityAssignment();
     dgua.setGuardUnityScheduleAssignmentId(request.guardUnityScheduleAssignmentId());
     dgua.setTurnAndHourId(request.turnAndHourId());
@@ -86,13 +91,13 @@ public class DateGuardUnityAssignmentService {
   @Transactional
   public List<DateGuardUnityAssignmentDto> bulkCreateFreeDayAssignments(
       CreateBulkFreeDayRequest request) {
-    List<DateGuardUnityAssignment> existingFreeDaysAssignments = dateGuardUnityAssignmentRepository
+    List<DateGuardUnityAssignmentSimpleInfo> existingFreeDaysAssignments = dateGuardUnityAssignmentRepository
         .findByGuardUnityScheduleAssignmentIdAndDateIn(
             request.guardUnityScheduleAssignmentId(), request.dates());
 
     List<DateGuardUnityAssignmentDto> createdAssignments = request.dates().stream()
         .filter(date -> existingFreeDaysAssignments.stream()
-            .noneMatch(existing -> existing.getDate().equals(date)))
+            .noneMatch(existing -> existing.date().equals(date)))
         .map(date -> {
           CreateDailyAssignmentRequest dailyRequest = new CreateDailyAssignmentRequest(
               date,
@@ -111,13 +116,13 @@ public class DateGuardUnityAssignmentService {
   @Transactional
   public List<DateGuardUnityAssignmentDto> bulkCreateVacationAssignments(
       CreateBulkVacationRequest request) {
-    List<DateGuardUnityAssignment> existingAssignments = dateGuardUnityAssignmentRepository
+    List<DateGuardUnityAssignmentSimpleInfo> existingAssignments = dateGuardUnityAssignmentRepository
         .findByGuardUnityScheduleAssignmentIdAndDateIsBetween(
             request.guardUnityScheduleAssignmentId(), request.date(), request.toDate());
 
     if (!existingAssignments.isEmpty()) {
       // If there are existing assignments in the date range
-      return List.of();
+      throw new RuntimeException("El agente ya tiene asignaciones en el rango de fechas seleccionado para vacaciones.");
     }
 
     CreateDailyAssignmentRequest dailyRequest = new CreateDailyAssignmentRequest(

@@ -42,7 +42,6 @@ public class ScheduleExceptionController {
 
   @DeleteMapping(SEConstants.SECURE_BASE_ENDPOINT + "/schedule-exception/{scheduleExceptionId}")
   public Long deleteScheduleException(@PathVariable Long scheduleExceptionId) {
-    //verificar si el guardia no tien otras asignaciones y eliminar du guarAssintement
     return scheduleExceptionService.deleteScheduleException(scheduleExceptionId);
   }
 

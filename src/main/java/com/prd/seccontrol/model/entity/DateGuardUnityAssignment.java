@@ -46,12 +46,21 @@ public class DateGuardUnityAssignment {
   private boolean hasVacation;
   private boolean hasExceptions;
   private boolean hasExtraHours;
+  private boolean finalized;
   @CreationTimestamp
   private LocalDateTime createdAt;
   @UpdateTimestamp
   private LocalDateTime updatedAt;
 
   public DateGuardUnityAssignment() {
+  }
+
+  public boolean isFinalized() {
+    return finalized;
+  }
+
+  public void setFinalized(boolean finalized) {
+    this.finalized = finalized;
   }
 
   public LocalDate getDate() {
