@@ -3,6 +3,7 @@ package com.prd.seccontrol.controller;
 import com.prd.seccontrol.model.dto.AssignProfilesRequest;
 import com.prd.seccontrol.model.dto.CreateUserRequest;
 import com.prd.seccontrol.model.dto.UpdateUserRequest;
+import com.prd.seccontrol.model.dto.UserDto;
 import com.prd.seccontrol.model.dto.UserPassword;
 import com.prd.seccontrol.model.entity.SecurityProfile;
 import com.prd.seccontrol.model.entity.User;
@@ -46,14 +47,14 @@ public class UserController {
   private SecurityProfileRepository securityProfileRepository;
 
   @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/user/all")
-  public @ResponseBody Page<User> findAll(Pageable pageable) {
+  public @ResponseBody Page<UserDto> findAll(Pageable pageable) {
 
-    return userRepository.findAll(pageable);
+    return userRepository.findAll(pageable).map(UserDto::new);
   }
 
   @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/user/{id}")
-  public @ResponseBody User findById(@PathVariable(value = "id") Long id) throws Exception {
-    return userRepository.findById(id).orElseThrow(() -> new Exception("User not found with id: " + id));
+  public @ResponseBody UserDto findById(@PathVariable(value = "id") Long id) throws Exception {
+    return userRepository.findById(id).map(UserDto::new).orElseThrow(() -> new Exception("User not found with id: " + id));
   }
 
   @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/user/self")
@@ -81,18 +82,18 @@ public class UserController {
         viewAuthorizationRepository.findViewBySecurityProfileId(securityProfileIdSet);
 
     user.setViewAuthorizations(viewAuthorizations);
-
+    user.setPassword(null);
     return user;
   }
 
   @PostMapping(SEConstants.SECURE_BASE_ENDPOINT + "/user")
-  public @ResponseBody User create(@RequestBody CreateUserRequest user) {
-    return userService.createUser(user);
+  public @ResponseBody UserDto create(@RequestBody CreateUserRequest user) {
+    return new UserDto(userService.createUser(user));
   }
 
   @PutMapping(SEConstants.SECURE_BASE_ENDPOINT + "/user/{id}")
-  public @ResponseBody User edit(@PathVariable(value = "id") Long id, @RequestBody UpdateUserRequest request) throws Exception {
-    return userService.updateUser(id, request);
+  public @ResponseBody UserDto edit(@PathVariable(value = "id") Long id, @RequestBody UpdateUserRequest request) throws Exception {
+    return new UserDto(userService.updateUser(id, request));
   }
 
   @PutMapping(SEConstants.SECURE_BASE_ENDPOINT + "/user/self/{id}")
@@ -117,7 +118,7 @@ public class UserController {
     } else {
       throw new Exception("User can only edit their own password.");
     }
-
+    user.setPassword(null);
     return user;
   }
 
@@ -135,16 +136,18 @@ public class UserController {
     Set<SecurityProfile> securityProfiles = securityProfileRepository.findByIdIn(request.profileIds());
 
     user.setSecurityProfileSet(securityProfiles);
-    return userRepository.save(user);
+    user = userRepository.save(user);
+    user.setPassword(null);
+    return user;
   }
 
   @PutMapping(SEConstants.SECURE_BASE_ENDPOINT + "/user/{id}/status")
-  public @ResponseBody User updateUserStatus(@PathVariable(value = "id") Long id,
+  public @ResponseBody UserDto updateUserStatus(@PathVariable(value = "id") Long id,
       @RequestBody Boolean enabled) throws Exception {
     User user = userRepository.findById(id)
         .orElseThrow(() -> new Exception("User not found with id: " + id));
     user.setEnabled(enabled);
-    return userRepository.save(user);
+    return new UserDto(userRepository.save(user));
   }
 
 
