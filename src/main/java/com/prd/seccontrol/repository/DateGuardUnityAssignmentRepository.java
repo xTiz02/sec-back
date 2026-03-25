@@ -10,7 +10,6 @@ import java.util.Optional;
 import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -151,8 +150,8 @@ public interface DateGuardUnityAssignmentRepository extends
 
   @Query("""
           SELECT new com.prd.seccontrol.model.dto.DateGuardUnityAssignmentInfo(
-              COALESCE(g.employee.firstName, exg.firstName),
-              COALESCE(g.employee.documentNumber, exg.documentNumber),
+              COALESCE(emp.firstName, exg.firstName),
+              COALESCE(emp.documentNumber, exg.documentNumber),
               g.photoUrl,
               gusa.guardType,
               dgua.id,
@@ -160,20 +159,22 @@ public interface DateGuardUnityAssignmentRepository extends
               gusa.id,
               dgua.date,
               COALESCE(cu.id, ssu.id),
-              COALESCE(cu.unity.name, ssu.unityName),
-              COALESCE(cu.unity.direction, ssu.address),
-              COALESCE(cu.unity.latitude, ssu.latitude),
-              COALESCE(cu.unity.longitude, ssu.longitude),
-              COALESCE(cu.unity.rangeCoverage, ssu.rangeCoverage),
-              tt,
+              COALESCE(u.name, ssu.unityName),
+              COALESCE(u.direction, ssu.address),
+              COALESCE(u.latitude, ssu.latitude),
+              COALESCE(u.longitude, ssu.longitude),
+              COALESCE(u.rangeCoverage, ssu.rangeCoverage),
+              dgua.turnAndHour.turnTemplate,
               dgua.hasExceptions
           )
           FROM DateGuardUnityAssignment dgua
           INNER JOIN dgua.guardUnityScheduleAssignment gusa
-          INNER JOIN dgua.turnAndHour.turnTemplate tt
-          LEFT JOIN gusa.guardAssignment.externalGuard exg
-          LEFT JOIN gusa.guardAssignment.guard g
+          LEFT JOIN gusa.guardAssignment ga
+          LEFT JOIN ga.externalGuard exg
+          LEFT JOIN ga.guard g
+          LEFT JOIN g.employee emp
           LEFT JOIN gusa.contractUnity cu
+          LEFT JOIN cu.unity u
           LEFT JOIN gusa.specialServiceUnitySchedule ssus
           LEFT JOIN ssus.specialServiceUnity ssu
           WHERE dgua.id IN :ids
@@ -202,67 +203,40 @@ public interface DateGuardUnityAssignmentRepository extends
 
 
   @Query("""
-      SELECT new com.prd.seccontrol.model.dto.DateGuardUnityAssignmentInfo(
-          gusa.guardType,
-          dgua.id,
-          gusa.guardAssignmentId,
-          gusa.id,
-          tt,
-          dgua.hasExceptions
+  SELECT dgua.id
+  FROM DateGuardUnityAssignment dgua
+  LEFT JOIN ScheduleException se
+      ON se.dateGuardUnityAssignmentId = dgua.id
+  LEFT JOIN dgua.guardUnityScheduleAssignment gusa
+  LEFT JOIN gusa.guardAssignment ga
+  LEFT JOIN ga.guard g
+  LEFT JOIN ga.externalGuard exg
+  
+  LEFT JOIN se.guardUnityScheduleAssignment gusaEx
+  LEFT JOIN gusaEx.guardAssignment gaEx
+  LEFT JOIN gaEx.guard gEx
+  LEFT JOIN gaEx.externalGuard exgEx
+  
+  WHERE dgua.date <= :date
+  AND (
+      (
+          dgua.hasExceptions = true AND
+          (
+              (:guardId IS NOT NULL AND gEx.id = :guardId) OR
+              (:externalGuardId IS NOT NULL AND exgEx.id = :externalGuardId)
+          )
       )
-      FROM DateGuardUnityAssignment dgua
-      INNER JOIN dgua.guardUnityScheduleAssignment gusa
-      INNER JOIN dgua.turnAndHour.turnTemplate tt
-      WHERE dgua.date < :date
-      AND NOT EXISTS (
-          SELECT 1
-          FROM GuardAssistanceEvent g
-          WHERE g.dateGuardUnityAssignmentId = dgua.id
-          AND g.assistanceType = 1
+      OR
+      (
+          dgua.hasExceptions = false AND
+          (
+              (:guardId IS NOT NULL AND g.id = :guardId) OR
+              (:externalGuardId IS NOT NULL AND exg.id = :externalGuardId)
+          )
       )
-      ORDER BY dgua.date DESC
-      """)
-  List<DateGuardUnityAssignment> findLast31WithoutExit(
-      @Param("date") LocalDate date,
-      Pageable pageable
-  );
-
-
-  @Query("""
-        SELECT dgua.id
-        FROM DateGuardUnityAssignment dgua
-        LEFT JOIN ScheduleException se
-            ON se.dateGuardUnityAssignmentId = dgua.id
-        LEFT JOIN dgua.guardUnityScheduleAssignment gusa
-        LEFT JOIN gusa.guardAssignment ga
-        LEFT JOIN ga.guard g
-        LEFT JOIN ga.externalGuard exg
-      
-        LEFT JOIN se.guardUnityScheduleAssignment gusaEx
-        LEFT JOIN gusaEx.guardAssignment gaEx
-        LEFT JOIN gaEx.guard gEx
-        LEFT JOIN gaEx.externalGuard exgEx
-      
-        WHERE dgua.date <= :date
-        AND (
-            (
-                dgua.hasExceptions = true AND
-                (
-                    (:guardId IS NOT NULL AND gEx.id = :guardId) OR
-                    (:externalGuardId IS NOT NULL AND exgEx.id = :externalGuardId)
-                )
-            )
-            OR
-            (
-                dgua.hasExceptions = false AND
-                (
-                    (:guardId IS NOT NULL AND g.id = :guardId) OR
-                    (:externalGuardId IS NOT NULL AND exg.id = :externalGuardId)
-                )
-            )
-        )
-        ORDER BY dgua.date DESC
-      """)
+  )
+  ORDER BY dgua.date DESC
+""")
   Page<Long> findLastDateGuardUnityAssignmentIds(
       @Param("guardId") Long guardId,
       @Param("externalGuardId") Long externalGuardId,

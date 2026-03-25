@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EmployeeAssignmentMonthlyService {
@@ -37,6 +38,7 @@ public class EmployeeAssignmentMonthlyService {
     return new EmployeeAssignmentMonthlyDto(assignment, unitAssignmentDtos);
   }
 
+  @Transactional
   public EmployeeAssignmentMonthlyDto createEmployeeAssignmentMonthly(
       CreateEmployeeAssignmentRequest request) {
     EmployeeAssignmentMonthly assignment = new EmployeeAssignmentMonthly();
@@ -62,6 +64,7 @@ public class EmployeeAssignmentMonthlyService {
     return new EmployeeAssignmentMonthlyDto(savedAssignment);
   }
 
+  @Transactional
   public EmployeeAssignmentMonthlyDto updateEmployeeAssignmentMonthly(
       CreateEmployeeAssignmentRequest request, Long id) {
 

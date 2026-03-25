@@ -1,4 +1,4 @@
-package com.prd.seccontrol.service.impl;
+package com.prd.seccontrol.service.inter;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;

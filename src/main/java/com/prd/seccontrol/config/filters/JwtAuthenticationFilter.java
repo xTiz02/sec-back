@@ -1,6 +1,6 @@
 package com.prd.seccontrol.config.filters;
 
-import com.prd.seccontrol.service.impl.JwtService;
+import com.prd.seccontrol.service.inter.JwtService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -4,7 +4,8 @@ import com.prd.seccontrol.model.types.ZoneType;
 
 public record UnitAssignmentRequest(
     ZoneType zoneType,
-    Long unityId
+    Long unityId,
+    Long specialUnityId
 ) {
 
 }

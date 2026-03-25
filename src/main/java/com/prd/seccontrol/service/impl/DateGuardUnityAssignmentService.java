@@ -67,6 +67,7 @@ public class DateGuardUnityAssignmentService {
     dgua.setScheduleAssignmentType(request.scheduleAssignmentType());
     dgua.setHasVacation(false);
     dgua.setHasExceptions(false);
+    dgua.setFinalized(false);
 
     DayOfMonth dayOfMonth = dayOfMonthRepository.findByMonthAndDayOfMonthAndYear(monthEnum, day,
             year)

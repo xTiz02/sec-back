@@ -4,7 +4,7 @@ import com.prd.seccontrol.model.dto.AuthResponse;
 import com.prd.seccontrol.model.dto.LoginRequest;
 import com.prd.seccontrol.model.entity.User;
 import com.prd.seccontrol.repository.UserRepository;
-import com.prd.seccontrol.service.impl.JwtService;
+import com.prd.seccontrol.service.inter.JwtService;
 import com.prd.seccontrol.util.SEConstants;
 import java.util.Date;
 import org.springframework.beans.factory.annotation.Autowired;
