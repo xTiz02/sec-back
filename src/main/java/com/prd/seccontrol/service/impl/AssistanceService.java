@@ -216,7 +216,7 @@ public class AssistanceService {
       List<ScheduleException> exceptions = scheduleExceptionRepository.findByDateGuardUnityAssignmentId(
           dateGuardUnityAssignmentInfo.dateGuardUnityAssignmentId());
       if (!exceptions.isEmpty()) {
-        dateGuardUnityAssignmentInfo = setExceptionDateGuardFields(
+        setExceptionDateGuardFields(
             guard, externalGuard, dateGuardUnityAssignmentInfo);
       }
 
@@ -225,62 +225,55 @@ public class AssistanceService {
         dateGuardUnityAssignmentInfo.turnTemplate());
     LocalDateTime shiftStartDateTime = shiftDateTimes[0];
     LocalDateTime shiftEndDateTime = shiftDateTimes[1];
-    LocalDateTime nowDateTime = LocalDateTime.of(today, todayTime);
-
+    LocalDateTime markTime = LocalDateTime.of(today, todayTime);
+    LocalDateTime limitTimeToMark = null;
+    Long toleranceMinutes = 0L;
     boolean isLate = false;
-    int differenceInMinutes = 0;
     int orderNumber = 0;
+
     if (request.assistanceType().equals(AssistanceType.ENTRY)) {
-      //if is after of shift start time, is late
       orderNumber = 0;
-      isLate = nowDateTime.isAfter(shiftStartDateTime);
-      if (isLate) {
-        differenceInMinutes = (int) Duration.between(shiftStartDateTime, nowDateTime).toMinutes();
-      } else {
-        // mark only 15 min before shift start time
-        if (nowDateTime.isBefore(shiftStartDateTime.minusMinutes(15))) {
-          throw new RuntimeException(
-              "You can only mark assistance 15 minutes before shift start time");
-        }
-        differenceInMinutes = (int) Duration.between(nowDateTime, shiftStartDateTime).toMinutes();
+      toleranceMinutes = SEConstants.ENTRY_TOLERANCE;
+      limitTimeToMark = shiftStartDateTime.plusMinutes(SEConstants.ENTRY_TOLERANCE);
+      isLate = markTime.isAfter(limitTimeToMark);
+      if (markTime.isBefore(shiftStartDateTime.minusMinutes(SEConstants.ENTRY_AVAILABLE_TIME))) {
+        throw new RuntimeException(
+            "Solo se puede marcar el ingreso " + SEConstants.ENTRY_AVAILABLE_TIME + " minutos antes del inicio del turno");
       }
     }
 
     if (request.assistanceType().equals(AssistanceType.BREAK_START)) {
       orderNumber = 1;
-      differenceInMinutes = (int) Duration.between(nowDateTime, shiftStartDateTime).toMinutes();
     }
 
     if (request.assistanceType().equals(AssistanceType.BREAK_END)) {
+      orderNumber = 2;
       GuardAssistanceEvent breakStartEvent = guardAssistanceEventRepository.findTopByDateGuardUnityAssignmentIdAndAssistanceType(
               request.dateGuardUnityAssignmentId(), AssistanceType.BREAK_START)
-          .orElseThrow(() -> new RuntimeException("Break start event not found"));
+          .orElseThrow(() -> new RuntimeException("No se encontró el evento de inicio de descanso para esta asignación"));
       LocalDateTime startBreakDateTime = LocalDateTime.of(breakStartEvent.getMarkDate(),
           breakStartEvent.getMarkTime());
-      orderNumber = 2;
-      //if mark is after 1 hour 15 min of shift start time, is late
-      isLate = nowDateTime.isAfter(startBreakDateTime.plusMinutes(75));
-      if (isLate) {
-        differenceInMinutes = (int) Duration.between(startBreakDateTime.plusMinutes(75),
-            nowDateTime).toMinutes();
-      } else {
-        differenceInMinutes = (int) Duration.between(nowDateTime,
-            startBreakDateTime.plusMinutes(75)).toMinutes();
+      toleranceMinutes = SEConstants.BREAK_EXIT_TOLERANCE;
+      limitTimeToMark = startBreakDateTime.plusMinutes(SEConstants.BREAK_TIME + SEConstants.BREAK_EXIT_TOLERANCE);
+      isLate = markTime.isAfter(limitTimeToMark);
+      if(markTime.isBefore(startBreakDateTime.plusMinutes(SEConstants.BREAK_TIME))) {
+        throw new RuntimeException(
+            "Solo se puede marcar el fin del descanso después de " + SEConstants.BREAK_TIME
+                + " minutos desde el inicio del descanso");
       }
     }
 
     if (request.assistanceType().equals(AssistanceType.EXIT)) {
+      orderNumber = 3;
       dateGuardUnityAssignmentRepository.updateFinalizedByIds(true,
           List.of(request.dateGuardUnityAssignmentId()));
-      orderNumber = 3;
-      //if mark is after shift end time plus 15 min, is late
-      isLate = nowDateTime.isAfter(shiftEndDateTime.plusMinutes(15));
-      if (isLate) {
-        differenceInMinutes = (int) Duration.between(shiftEndDateTime.plusMinutes(15), nowDateTime)
-            .toMinutes();
-      } else {
-        differenceInMinutes = (int) Duration.between(nowDateTime, shiftEndDateTime.plusMinutes(15))
-            .toMinutes();
+
+      limitTimeToMark = shiftEndDateTime.plusMinutes(SEConstants.EXIT_AVAILABLE_TIME);
+      isLate = markTime.isAfter(limitTimeToMark);
+      toleranceMinutes = SEConstants.EXIT_AVAILABLE_TIME;
+      if(markTime.isBefore(shiftEndDateTime)) {
+        throw new RuntimeException(
+            "Solo se puede marcar la salida "+ SEConstants.EXIT_AVAILABLE_TIME +" minutos después del fin del turno");
       }
     }
 
@@ -290,9 +283,10 @@ public class AssistanceService {
     event.setGuardType(dateGuardUnityAssignmentInfo.guardType());
     event.setGuardAssignmentId(dateGuardUnityAssignmentInfo.guardAssignmentId());
     event.setAssistanceType(request.assistanceType());
+    event.setLimitTimeToMark(limitTimeToMark);
+    event.setToleranceMinutes(toleranceMinutes);
     event.setAssistanceProblemType(
         isLate ? AssistanceProblemType.LATE : AssistanceProblemType.EARLY);
-    event.setDifferenceInMinutes(differenceInMinutes);
     event.setNumberOrder(orderNumber);
     event.setLongitude(request.longitude());
     event.setLatitude(request.latitude());
@@ -307,6 +301,7 @@ public class AssistanceService {
 
     return assistanceEventDto;
   }
+
 
   public DateGuardUnityAssignmentInfo setExceptionDateGuardFields(
       Guard guard, ExternalGuard externalGuard, DateGuardUnityAssignmentInfo info) {

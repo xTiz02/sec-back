@@ -222,7 +222,8 @@ public interface DateGuardUnityAssignmentRepository extends
   LEFT JOIN gaEx.externalGuard exgEx
   
   WHERE dgua.date BETWEEN :dateFrom AND :dateTo
-  AND dgua.finalized = false
+  AND dgua.finalized = false AND dgua.toDate is null
+  AND dgua.scheduleAssignmentType=3
   AND (
       (
           dgua.hasExceptions = true AND
@@ -247,22 +248,6 @@ public interface DateGuardUnityAssignmentRepository extends
       @Param("externalGuardId") Long externalGuardId,
       @Param("dateFrom") LocalDate dateFrom,
       @Param("dateTo") LocalDate dateTo
-  );
-
-  @Query("""
-          SELECT DISTINCT g.dateGuardUnityAssignmentId
-          FROM GuardAssistanceEvent g
-          WHERE g.dateGuardUnityAssignmentId IN :ids
-          AND g.assistanceType = 1
-          AND NOT EXISTS (
-              SELECT 1
-              FROM GuardExtraHours geh
-              WHERE geh.guardAssistanceEventId = g.id
-              AND geh.endDate IS NULL
-      )
-      """)
-  Set<Long> findDateGuardIdsWithExitWithoutOpenExtraHours(
-      @Param("ids") Set<Long> ids
   );
 
   @Query("""

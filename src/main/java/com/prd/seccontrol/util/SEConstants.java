@@ -17,4 +17,16 @@ public class SEConstants {
   public static final String INTERCEPTED_JSON = "INTERCEPTED_JSON";
 
   public static final Long INTERVAL_DAYS = 2L;
+
+  // in minutes
+  public static final Long ENTRY_AVAILABLE_TIME = 15L;
+  public static final Long ENTRY_TOLERANCE = 5L;
+
+  public static final Long BREAK_TIME = 45L;
+  public static final Long BREAK_EXIT_TOLERANCE = 5L;
+  public static final Long BREAK_AUTO_CLOSE_TIME_BEFORE_EXIT = 120L;
+
+  public static final Long EXIT_AVAILABLE_TIME = 15L;
+
+
 }

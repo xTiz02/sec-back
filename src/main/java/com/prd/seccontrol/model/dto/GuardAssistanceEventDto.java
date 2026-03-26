@@ -14,7 +14,6 @@ public record GuardAssistanceEventDto(
     LocalDate markDate,
     LocalTime markTime,
     LocalDateTime systemMark,
-    Integer differenceInMinutes,
     Integer numberOrder,
     AssistanceType assistanceType,
     AssistanceProblemType assistanceProblemType
@@ -28,7 +27,6 @@ public record GuardAssistanceEventDto(
         event.getMarkDate(),
         event.getMarkTime(),
         event.getSystemMark(),
-        event.getDifferenceInMinutes(),
         event.getNumberOrder(),
         event.getAssistanceType(),
         event.getAssistanceProblemType()

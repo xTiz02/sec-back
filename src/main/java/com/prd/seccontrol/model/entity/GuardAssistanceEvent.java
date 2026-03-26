@@ -44,11 +44,12 @@ public class GuardAssistanceEvent {
   private LocalDate markDate;
   private LocalTime markTime;
   private LocalDateTime systemMark;
-  private Integer differenceInMinutes;
+  private LocalDateTime limitTimeToMark;
   private Integer numberOrder = 0;
   private GuardType guardType;
   private String ipAddress;
   private AssistanceType assistanceType;
+  private Long toleranceMinutes = 0L;
   private AssistanceProblemType assistanceProblemType;
   @CreationTimestamp
   private LocalDateTime createdAt;
@@ -63,8 +64,24 @@ public class GuardAssistanceEvent {
     return guardAssignment;
   }
 
+  public Long getToleranceMinutes() {
+    return toleranceMinutes;
+  }
+
+  public void setToleranceMinutes(Long toleranceMinutes) {
+    this.toleranceMinutes = toleranceMinutes;
+  }
+
   public void setGuardAssignment(GuardAssignment guardAssignment) {
     this.guardAssignment = guardAssignment;
+  }
+
+  public LocalDateTime getLimitTimeToMark() {
+    return limitTimeToMark;
+  }
+
+  public void setLimitTimeToMark(LocalDateTime limitTimeToMark) {
+    this.limitTimeToMark = limitTimeToMark;
   }
 
   public Long getGuardAssignmentId() {
@@ -119,14 +136,6 @@ public class GuardAssistanceEvent {
   public void setDateGuardUnityAssignment(
       DateGuardUnityAssignment dateGuardUnityAssignment) {
     this.dateGuardUnityAssignment = dateGuardUnityAssignment;
-  }
-
-  public Integer getDifferenceInMinutes() {
-    return differenceInMinutes;
-  }
-
-  public void setDifferenceInMinutes(Integer differenceInMinutes) {
-    this.differenceInMinutes = differenceInMinutes;
   }
 
   public Long getId() {
