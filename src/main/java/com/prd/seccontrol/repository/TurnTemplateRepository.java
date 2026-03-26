@@ -20,5 +20,11 @@ public interface TurnTemplateRepository extends JpaRepository<TurnTemplate, Long
 """)
   List<TurnTemplate> findTurnTemplatesByContractUnitTemplateId(Long contractUnitTemplateId);
 
+  @Query("""
+    SELECT tt FROM TurnAndHour tah
+    JOIN TurnTemplate tt ON tah.turnTemplateId = tt.id
+    WHERE tah.id = :turnAndHourId
+    """)
+  Optional<TurnTemplate> findTurnTemplateByTurnAndHourId(Long turnAndHourId);
   Optional<TurnTemplate> findByTimeFromAndTimeToAndTurnTypeAndNumGuards(LocalTime timeFrom, LocalTime timeTo, TurnType turnType, Integer numGuards);
 }

@@ -80,10 +80,10 @@ public class TurnTemplateService {
     return turnTemplateRepository.save(turnTemplate);
   }
 
-  public LocalDateTime[] getShiftDateTimeRange(LocalDate today, TurnTemplate turnTemplate) {
-    LocalDateTime shiftStart = LocalDateTime.of(today, turnTemplate.getTimeFrom());
+  public LocalDateTime[] getShiftDateTimeRange(LocalDate date, TurnTemplate turnTemplate) {
+    LocalDateTime shiftStart = LocalDateTime.of(date, turnTemplate.getTimeFrom());
     //if now is less than turnTemplate().getTimeFrom() get next day
-    LocalDate shiftDate = turnTemplate.getTimeTo().isBefore(turnTemplate.getTimeFrom()) ? today.plusDays(1) : today;
+    LocalDate shiftDate = turnTemplate.getTimeTo().isBefore(turnTemplate.getTimeFrom()) ? date.plusDays(1) : date;
     LocalDateTime shiftEnd = LocalDateTime.of(shiftDate, turnTemplate.getTimeTo());
     return new LocalDateTime[]{shiftStart, shiftEnd};
   }

@@ -35,6 +35,7 @@ public class CloseAssistanceProcess {
     logger.info("Iniciando proceso programado CERRADO AUTOMATICO... : " + new Date());
     try {
       LocalDateTime now = LocalDateTime.now();
+      
     } catch (Exception e) {
       logger.error("Error en proceso programado", e);
     }

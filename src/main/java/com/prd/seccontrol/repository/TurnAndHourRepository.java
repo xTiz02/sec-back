@@ -1,8 +1,10 @@
 package com.prd.seccontrol.repository;
 
 import com.prd.seccontrol.model.entity.TurnAndHour;
+import com.prd.seccontrol.model.entity.TurnTemplate;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

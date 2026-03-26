@@ -41,6 +41,8 @@ public class DateGuardUnityAssignment {
   private DayOfWeek dayOfWeek;
   private Integer numDay;
   private LocalDate date;
+  private LocalDateTime dateTimeEntry;
+  private LocalDateTime dateTimeEnd;
   private ScheduleAssignmentType scheduleAssignmentType;
   private LocalDate toDate;
   private boolean hasVacation;
@@ -51,6 +53,22 @@ public class DateGuardUnityAssignment {
   private LocalDateTime createdAt;
   @UpdateTimestamp
   private LocalDateTime updatedAt;
+
+  public LocalDateTime getDateTimeEntry() {
+    return dateTimeEntry;
+  }
+
+  public void setDateTimeEntry(LocalDateTime dateTimeEntry) {
+    this.dateTimeEntry = dateTimeEntry;
+  }
+
+  public LocalDateTime getDateTimeEnd() {
+    return dateTimeEnd;
+  }
+
+  public void setDateTimeEnd(LocalDateTime dateTimeEnd) {
+    this.dateTimeEnd = dateTimeEnd;
+  }
 
   public DateGuardUnityAssignment() {
   }

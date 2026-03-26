@@ -7,6 +7,7 @@ import com.prd.seccontrol.model.dto.DateGuardUnityAssignmentDto;
 import com.prd.seccontrol.model.dto.DateGuardUnityAssignmentSimpleInfo;
 import com.prd.seccontrol.model.entity.DateGuardUnityAssignment;
 import com.prd.seccontrol.model.entity.DayOfMonth;
+import com.prd.seccontrol.model.entity.TurnTemplate;
 import com.prd.seccontrol.model.entity.WeekOfMonth;
 import com.prd.seccontrol.model.types.DayOfWeek;
 import com.prd.seccontrol.model.types.ScheduleAssignmentType;
@@ -14,8 +15,11 @@ import com.prd.seccontrol.repository.DateGuardUnityAssignmentRepository;
 import com.prd.seccontrol.repository.DayOfMonthRepository;
 import com.prd.seccontrol.repository.GuardAssignmentRepository;
 import com.prd.seccontrol.repository.GuardUnityScheduleAssignmentRepository;
+import com.prd.seccontrol.repository.TurnAndHourRepository;
+import com.prd.seccontrol.repository.TurnTemplateRepository;
 import com.prd.seccontrol.repository.WeekOfMonthRepository;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Month;
 import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.WeekFields;
@@ -42,6 +46,15 @@ public class DateGuardUnityAssignmentService {
   @Autowired
   private GuardAssignmentRepository guardAssignmentRepository;
 
+  @Autowired
+  private TurnAndHourRepository turnAndHourRepository;
+
+  @Autowired
+  private TurnTemplateRepository turnTemplateRepository;
+
+  @Autowired
+  private TurnTemplateService turnTemplateService;
+
   @Transactional
   public DateGuardUnityAssignmentDto createDateGuardUnityAssignment(
       CreateDailyAssignmentRequest request, LocalDate dateTo) {
@@ -57,6 +70,9 @@ public class DateGuardUnityAssignmentService {
     if (!existingAssignments.isEmpty()) {
       throw new RuntimeException("El guardia ya tiene una asignación para el día " + date);
     }
+
+    TurnTemplate  turnTemplate = turnTemplateRepository.findTurnTemplateByTurnAndHourId(request.turnAndHourId())
+        .orElseThrow(() -> new RuntimeException("TurnTemplate not found for TurnAndHourId: " + request.turnAndHourId()));
     DateGuardUnityAssignment dgua = new DateGuardUnityAssignment();
     dgua.setGuardUnityScheduleAssignmentId(request.guardUnityScheduleAssignmentId());
     dgua.setTurnAndHourId(request.turnAndHourId());
@@ -68,6 +84,11 @@ public class DateGuardUnityAssignmentService {
     dgua.setHasVacation(false);
     dgua.setHasExceptions(false);
     dgua.setFinalized(false);
+
+    LocalDateTime[] dateTimes = turnTemplateService.getShiftDateTimeRange(date, turnTemplate);
+    dgua.setDateTimeEntry(dateTimes[0]);
+    dgua.setDateTimeEnd(dateTimes[1]);
+
 
     DayOfMonth dayOfMonth = dayOfMonthRepository.findByMonthAndDayOfMonthAndYear(monthEnum, day,
             year)

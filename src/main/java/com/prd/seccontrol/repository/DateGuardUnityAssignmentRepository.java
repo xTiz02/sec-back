@@ -4,6 +4,7 @@ import com.prd.seccontrol.model.dto.DateGuardUnityAssignmentInfo;
 import com.prd.seccontrol.model.dto.DateGuardUnityAssignmentSimpleInfo;
 import com.prd.seccontrol.model.entity.DateGuardUnityAssignment;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -17,7 +18,13 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface DateGuardUnityAssignmentRepository extends
     JpaRepository<DateGuardUnityAssignment, Long> {
-
+//filtrar por rango de fecha y los qeu no estan cerrados
+//  @Query("""
+//    SELECT dgua FROM DateGuardUnityAssignment dgua
+//    WHERE dgua. BETWEEN :dateTimeEntry AND :dateTimeEnd
+//    """)
+//  List<DateGuardUnityAssignment> findByDateTimeEntryBetweenDateTimeEnd(LocalDateTime dateTimeEntry, LocalDateTime dateTimeEnd , LocalDateTime today);
+//
   @Query(
       """
                 SELECT dgua FROM DateGuardUnityAssignment dgua
