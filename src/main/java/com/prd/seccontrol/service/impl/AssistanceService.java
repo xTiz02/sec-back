@@ -12,6 +12,7 @@ import com.prd.seccontrol.model.entity.GuardAssignment;
 import com.prd.seccontrol.model.entity.GuardAssistanceEvent;
 import com.prd.seccontrol.model.entity.GuardExtraHours;
 import com.prd.seccontrol.model.entity.ScheduleException;
+import com.prd.seccontrol.model.entity.TurnTemplate;
 import com.prd.seccontrol.model.entity.User;
 import com.prd.seccontrol.model.types.AssistanceProblemType;
 import com.prd.seccontrol.model.types.AssistanceType;
@@ -23,16 +24,14 @@ import com.prd.seccontrol.repository.GuardRepository;
 import com.prd.seccontrol.repository.GuardRequestRepository;
 import com.prd.seccontrol.repository.ScheduleExceptionRepository;
 import com.prd.seccontrol.repository.UserRepository;
+import com.prd.seccontrol.util.SEConstants;
 import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,50 +77,64 @@ public class AssistanceService {
     ExternalGuard externalGuard = externalGuardRepository.findByUserId(user.getId())
         .orElse(null);
 
-    Set<Long> last31Shifts = dateGuardUnityAssignmentRepository.findLastDateGuardUnityAssignmentIds(
-        guard != null ? guard.getId() : null, externalGuard != null ? externalGuard.getId() : null,
-        today, PageRequest.of(0, 10)
-    ).stream().collect(Collectors.toSet());
+    List<Object[]> availableDatesGuards =
+        dateGuardUnityAssignmentRepository.findLastDateGuardUnityAssignmentIds(
+            guard != null ? guard.getId() : null,
+            externalGuard != null ? externalGuard.getId() : null,
+            today.minus(Duration.ofDays(SEConstants.INTERVAL_DAYS)),
+            today.plus(Duration.ofDays(SEConstants.INTERVAL_DAYS))
+        );
 
-    Set<Long> shiftsWithExitEvent = dateGuardUnityAssignmentRepository.findDateGuardIdsWithExitWithoutOpenExtraHours(
-        last31Shifts);
+    if (availableDatesGuards.isEmpty()) {
+      return new GuardCurrentShiftDto();
+    }
 
-    Set<Long> shiftsWithOutExitEvent = last31Shifts.stream()
-        .filter(id -> !shiftsWithExitEvent.contains(id))
-        .collect(Collectors.toSet());
+    //order by date and dateFrom
+    Object[] firts = availableDatesGuards.stream().min((a, b) -> {
+          LocalDateTime[] dateTimesA = turnTemplateService.getShiftDateTimeRange((LocalDate) a[2],
+              (TurnTemplate) a[1]);
+          LocalDateTime[] dateTimesB = turnTemplateService.getShiftDateTimeRange((LocalDate) b[2],
+              (TurnTemplate) b[1]);
+          LocalDateTime startA = dateTimesA[0];
+          LocalDateTime endA = dateTimesA[1];
+          LocalDateTime startB = dateTimesB[0];
+          LocalDateTime endB = dateTimesB[1];
+          if (startA.isBefore(startB)) {
+            return -1;
+          } else if (startA.isAfter(startB)) {
+            return 1;
+          } else {
+            if (endA.isBefore(endB)) {
+              return -1;
+            } else if (endA.isAfter(endB)) {
+              return 1;
+            } else {
+              return 0;
+            }
+          }
+        })
+        .orElse(null);
 
-    boolean useShiftsWithExitEvent = shiftsWithOutExitEvent.isEmpty();
+    Long dateGuardUnityAssignmentId = (Long) firts[0];
 
+    //get complete info of shift
     List<DateGuardUnityAssignmentInfo> dateGuardUnityAssignmentInfos =
         dateGuardUnityAssignmentRepository.findAllDateGuardUnityAssignmentInfo(
-            useShiftsWithExitEvent ? shiftsWithExitEvent : shiftsWithOutExitEvent);
+            List.of(dateGuardUnityAssignmentId));
 
     if (dateGuardUnityAssignmentInfos.isEmpty()) {
       return new GuardCurrentShiftDto();
     }
 
-    List<DateGuardUnityAssignmentInfo> dateGuardUnityAssignmentInfosWithExceptions = dateGuardUnityAssignmentInfos.stream()
-        .filter(DateGuardUnityAssignmentInfo::hasException).toList();
+    DateGuardUnityAssignmentInfo sampleInfo = dateGuardUnityAssignmentInfos.get(0);
+    boolean isException = sampleInfo.hasException();
 
-    if (!dateGuardUnityAssignmentInfosWithExceptions.isEmpty()) {
-      List<ScheduleException> exceptions = scheduleExceptionRepository.findByDateGuardUnityAssignmentIdIn(
-          dateGuardUnityAssignmentInfosWithExceptions.stream()
-              .map(DateGuardUnityAssignmentInfo::dateGuardUnityAssignmentId).toList());
-
-      dateGuardUnityAssignmentInfos = setExceptionDateGuardFields(dateGuardUnityAssignmentInfos, exceptions);
+    if (isException) {
+      setExceptionDateGuardFields(guard, externalGuard, sampleInfo);
     }
 
-    DateGuardUnityAssignmentInfo currentShift = dateGuardUnityAssignmentInfos.stream()
-        .min((a, b) -> {
-          LocalDateTime aStart = turnTemplateService.getShiftDateTimeRange(a.date(),
-              a.turnTemplate())[0];
-          LocalDateTime bStart = turnTemplateService.getShiftDateTimeRange(b.date(),
-              b.turnTemplate())[0];
-          return useShiftsWithExitEvent ? bStart.compareTo(aStart) : aStart.compareTo(bStart);
-        }).orElse(null);
-
     List<GuardAssistanceEventDto> assistanceEvents = guardAssistanceEventRepository.findByDateGuardUnityAssignmentId(
-            currentShift.dateGuardUnityAssignmentId())
+            sampleInfo.dateGuardUnityAssignmentId())
         .stream()
         .map(GuardAssistanceEventDto::new)
         .toList();
@@ -137,7 +150,7 @@ public class AssistanceService {
     GuardExtraHours activeExtraHours = null;
 
     String coveredGuardName = null;
-    if (exitEvent != null) {
+    if (exitEvent != null && sampleInfo.hasExtraHours()) {
       activeExtraHours = guardExtraHoursRepository.findByGuardAssistanceEventId(exitEvent.id())
           .orElse(null);
       if (activeExtraHours != null) {
@@ -149,22 +162,28 @@ public class AssistanceService {
       }
     }
 
-    List<GuardRequestDto> lateRequests = guardRequestRepository.findByGuardAssistanceEventIdIn(
-            assistanceEventIds)
-        .stream()
-        .map(lr -> {
-          GuardAssistanceEventDto eventDto = assistanceEvents.stream()
-              .filter(e -> e.id().equals(lr.getGuardAssistanceEventId()))
-              .findFirst()
-              .orElse(null);
-          return new GuardRequestDto(lr, eventDto.assistanceType());
-        })
-        .toList();
+    boolean hasLateEvents = assistanceEvents.stream()
+        .anyMatch(e -> e.assistanceProblemType() != null &&
+            (e.assistanceProblemType().equals(AssistanceProblemType.LATE) ||
+                e.assistanceProblemType().equals(AssistanceProblemType.LATE_JUSTIFIED)));
+    List<GuardRequestDto> lateRequests =
+        hasLateEvents ? guardRequestRepository.findByGuardAssistanceEventIdIn(
+                assistanceEventIds)
+            .stream()
+            .map(lr -> {
+              GuardAssistanceEventDto eventDto = assistanceEvents.stream()
+                  .filter(e -> e.id().equals(lr.getGuardAssistanceEventId()))
+                  .findFirst()
+                  .orElse(null);
+              return new GuardRequestDto(lr, eventDto.assistanceType());
+            })
+            .toList() : List.of();
 
     GuardCurrentShiftDto currentShiftDto = new GuardCurrentShiftDto(
-        currentShift,
+        sampleInfo,
         assistanceEvents,
-        activeExtraHours != null ? new GuardExtraHoursDto(activeExtraHours, coveredGuardName) : null,
+        activeExtraHours != null ? new GuardExtraHoursDto(activeExtraHours, coveredGuardName)
+            : null,
         lateRequests);
 
     return currentShiftDto;
@@ -193,11 +212,12 @@ public class AssistanceService {
                 request.dateGuardUnityAssignmentId())
             .orElseThrow(() -> new RuntimeException("Shift not found"));
 
-    if(dateGuardUnityAssignmentInfo.hasException()) {
+    if (dateGuardUnityAssignmentInfo.hasException()) {
       List<ScheduleException> exceptions = scheduleExceptionRepository.findByDateGuardUnityAssignmentId(
           dateGuardUnityAssignmentInfo.dateGuardUnityAssignmentId());
-      if(!exceptions.isEmpty()) {
-        dateGuardUnityAssignmentInfo = setExceptionDateGuardFields(List.of(dateGuardUnityAssignmentInfo), exceptions).get(0);
+      if (!exceptions.isEmpty()) {
+        dateGuardUnityAssignmentInfo = setExceptionDateGuardFields(
+            guard, externalGuard, dateGuardUnityAssignmentInfo);
       }
 
     }
@@ -250,7 +270,8 @@ public class AssistanceService {
     }
 
     if (request.assistanceType().equals(AssistanceType.EXIT)) {
-      dateGuardUnityAssignmentRepository.updateFinalizedByIds(true, List.of(request.dateGuardUnityAssignmentId()));
+      dateGuardUnityAssignmentRepository.updateFinalizedByIds(true,
+          List.of(request.dateGuardUnityAssignmentId()));
       orderNumber = 3;
       //if mark is after shift end time plus 15 min, is late
       isLate = nowDateTime.isAfter(shiftEndDateTime.plusMinutes(15));
@@ -287,49 +308,31 @@ public class AssistanceService {
     return assistanceEventDto;
   }
 
-  public List<DateGuardUnityAssignmentInfo> setExceptionDateGuardFields(
-      List<DateGuardUnityAssignmentInfo> infos,
-      List<ScheduleException> exceptions) {
-
-    return infos.stream().map(info -> {
-      ScheduleException exception = exceptions.stream()
-          .filter(e -> e.getDateGuardUnityAssignmentId()
-              .equals(info.dateGuardUnityAssignmentId()))
-          .findFirst()
-          .orElse(null);
-
-      if (exception != null) {
-        Guard eguard = exception.getGuardUnityScheduleAssignment()
-            .getGuardAssignment().getGuard();
-
-        ExternalGuard exguard = exception.getGuardUnityScheduleAssignment()
-            .getGuardAssignment().getExternalGuard();
-
-        if (eguard != null) {
-          return new DateGuardUnityAssignmentInfo(
-              eguard.getEmployee().getFirstName(),
-              eguard.getEmployee().getDocumentNumber(),
-              eguard.getPhotoUrl(),
-              eguard.getGuardType(),
-              exception.getGuardUnityScheduleAssignment().getGuardAssignment().getId(),
-              exception.getGuardUnityScheduleAssignment().getId(),
-              info
-          );
-        } else if (exguard != null) {
-          return new DateGuardUnityAssignmentInfo(
-              exguard.getFirstName(),
-              exguard.getDocumentNumber(),
-              null,
-              exception.getGuardUnityScheduleAssignment().getGuardType(),
-              exception.getGuardUnityScheduleAssignment().getGuardAssignment().getId(),
-              exception.getGuardUnityScheduleAssignment().getId(),
-              info
-          );
-        }
-      }
-
+  public DateGuardUnityAssignmentInfo setExceptionDateGuardFields(
+      Guard guard, ExternalGuard externalGuard, DateGuardUnityAssignmentInfo info) {
+    if (externalGuard != null) {
+      return new DateGuardUnityAssignmentInfo(
+          externalGuard.getFirstName(),
+          externalGuard.getDocumentNumber(),
+          null,
+          info.guardType(),
+          info.dateGuardUnityAssignmentId(),
+          info.guardAssignmentId(),
+          info
+      );
+    } else if (guard != null) {
+      return new DateGuardUnityAssignmentInfo(
+          guard.getEmployee().getFirstName(),
+          guard.getEmployee().getDocumentNumber(),
+          guard.getPhotoUrl(),
+          guard.getGuardType(),
+          info.dateGuardUnityAssignmentId(),
+          info.guardAssignmentId(),
+          info
+      );
+    } else {
       return info;
-    }).toList();
+    }
   }
 
 

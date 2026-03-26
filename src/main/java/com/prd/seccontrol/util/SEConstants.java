@@ -15,4 +15,6 @@ public class SEConstants {
 
   public static final String PERU_LOCAL_TIMEZONE = "-05:00";
   public static final String INTERCEPTED_JSON = "INTERCEPTED_JSON";
+
+  public static final Long INTERVAL_DAYS = 2L;
 }

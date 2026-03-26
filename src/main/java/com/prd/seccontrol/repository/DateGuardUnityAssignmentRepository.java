@@ -8,8 +8,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -165,7 +163,9 @@ public interface DateGuardUnityAssignmentRepository extends
               COALESCE(u.longitude, ssu.longitude),
               COALESCE(u.rangeCoverage, ssu.rangeCoverage),
               dgua.turnAndHour.turnTemplate,
-              dgua.hasExceptions
+              dgua.hasExceptions,
+              dgua.hasExtraHours,
+              dgua.finalized
           )
           FROM DateGuardUnityAssignment dgua
           INNER JOIN dgua.guardUnityScheduleAssignment gusa
@@ -191,7 +191,9 @@ public interface DateGuardUnityAssignmentRepository extends
               gusa.guardAssignmentId,
               gusa.id,
               tt,
-              dgua.hasExceptions
+              dgua.hasExceptions,
+              dgua.hasExtraHours,
+              dgua.finalized
           )
           FROM DateGuardUnityAssignment dgua
           INNER JOIN dgua.guardUnityScheduleAssignment gusa
@@ -203,8 +205,10 @@ public interface DateGuardUnityAssignmentRepository extends
 
 
   @Query("""
-  SELECT dgua.id
+  SELECT dgua.id, tt, dgua.date
   FROM DateGuardUnityAssignment dgua
+  LEFT JOIN dgua.turnAndHour tah
+  LEFT JOIN tah.turnTemplate tt
   LEFT JOIN ScheduleException se
       ON se.dateGuardUnityAssignmentId = dgua.id
   LEFT JOIN dgua.guardUnityScheduleAssignment gusa
@@ -217,7 +221,8 @@ public interface DateGuardUnityAssignmentRepository extends
   LEFT JOIN gaEx.guard gEx
   LEFT JOIN gaEx.externalGuard exgEx
   
-  WHERE dgua.date <= :date
+  WHERE dgua.date BETWEEN :dateFrom AND :dateTo
+  AND dgua.finalized = false
   AND (
       (
           dgua.hasExceptions = true AND
@@ -237,11 +242,11 @@ public interface DateGuardUnityAssignmentRepository extends
   )
   ORDER BY dgua.date DESC
 """)
-  Page<Long> findLastDateGuardUnityAssignmentIds(
+  List<Object[]> findLastDateGuardUnityAssignmentIds(
       @Param("guardId") Long guardId,
       @Param("externalGuardId") Long externalGuardId,
-      @Param("date") LocalDate date,
-      Pageable pageable
+      @Param("dateFrom") LocalDate dateFrom,
+      @Param("dateTo") LocalDate dateTo
   );
 
   @Query("""

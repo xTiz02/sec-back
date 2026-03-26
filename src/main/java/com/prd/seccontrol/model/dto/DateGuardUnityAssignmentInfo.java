@@ -20,7 +20,9 @@ public record DateGuardUnityAssignmentInfo(
     Double longitude,
     Double allowedRadius,
     TurnTemplate turnTemplate,
-    boolean hasException
+    boolean hasException,
+    boolean hasExtraHours,
+    boolean finalized
 ) {
 
   public DateGuardUnityAssignmentInfo(
@@ -39,7 +41,9 @@ public record DateGuardUnityAssignmentInfo(
       Double longitude,
       Double allowedRadius,
       TurnTemplate turnTemplate,
-      boolean hasException
+      boolean hasException,
+      boolean hasExtraHours,
+      boolean finalized
   ) {
     this.guardName = guardName;
     this.guardDocumentNumber = guardDocumentNumber;
@@ -57,6 +61,8 @@ public record DateGuardUnityAssignmentInfo(
     this.allowedRadius = allowedRadius;
     this.turnTemplate = turnTemplate;
     this.hasException = hasException;
+    this.hasExtraHours = hasExtraHours;
+    this.finalized = finalized;
   }
 
   public DateGuardUnityAssignmentInfo(
@@ -83,7 +89,9 @@ public record DateGuardUnityAssignmentInfo(
         other.longitude,
         other.allowedRadius,
         other.turnTemplate,
-        other.hasException);
+        other.hasException,
+        other.hasExtraHours,
+        other.finalized);
   }
 
   public DateGuardUnityAssignmentInfo(
@@ -92,7 +100,9 @@ public record DateGuardUnityAssignmentInfo(
       Long guardAssignmentId,
       Long guardUnityAssignmentId,
       TurnTemplate turnTemplate,
-      boolean hasException
+      boolean hasException,
+      boolean hasExtraHours,
+      boolean finalized
   ) {
     this(
         null,
@@ -110,7 +120,9 @@ public record DateGuardUnityAssignmentInfo(
         null,
         null,
         turnTemplate,
-        hasException
+        hasException,
+        hasExtraHours,
+        finalized
     );
   }
 }
