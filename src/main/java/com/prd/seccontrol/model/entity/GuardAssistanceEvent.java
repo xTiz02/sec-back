@@ -11,6 +11,7 @@ import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -21,6 +22,10 @@ import org.hibernate.annotations.UpdateTimestamp;
 @Table(
     indexes = {
         @Index(name = "idx_dgua_id", columnList = "dateGuardUnityAssignmentId")
+    },
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_guard_assistance_event_dgua_id_assistance_type",
+            columnNames = {"dateGuardUnityAssignmentId", "assistanceType"} )
     }
 )
 public class GuardAssistanceEvent {

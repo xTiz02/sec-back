@@ -21,4 +21,10 @@ public interface GuardAssistanceEventRepository extends JpaRepository<GuardAssis
   WHERE e.assistanceType = 1 AND e.dateGuardUnityAssignmentId IN :dateGuardUnityAssignmentIds
 """)
   List<GuardAssistanceEvent> findEventsWithExitAssistanceByDateGuardUnityAssignmentIdIn(List<Long> dateGuardUnityAssignmentIds);
+
+  @Query("""
+    SELECT gae FROM GuardAssistanceEvent gae
+    WHERE gae.dateGuardUnityAssignmentId in :dateGuardUnityAssignmentIds
+    """)
+  List<GuardAssistanceEvent> findByDateGuardUnityAssignmentIdIn(List<Long> dateGuardUnityAssignmentIds);
 }

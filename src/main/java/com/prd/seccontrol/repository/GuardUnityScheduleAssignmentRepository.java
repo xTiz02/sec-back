@@ -37,4 +37,19 @@ public interface GuardUnityScheduleAssignmentRepository extends
       Long externalGuardId,
       Long scheduleMonthlyId
   );
+
+  @Query("""
+    SELECT gus FROM GuardUnityScheduleAssignment gus
+    INNER JOIN gus.guardAssignment ga
+    WHERE gus.scheduleMonthlyId in :monthlyIds OR gus.specialServiceUnityScheduleId in :specialServiceUnityScheduleIds
+    AND (:guardId is not null and ga.guardId = :guardId) OR (:externalGuardId is not null and ga.externalGuardId = :externalGuardId)
+  """)
+  List<GuardUnityScheduleAssignment> findByGuardIdAndScheduleMonthlyIdsOrSpecialServiceUnityScheduleIds(
+      List<Long> monthlyIds,
+      List<Long> specialServiceUnityScheduleIds,
+      Long guardId,
+      Long externalGuardId
+  );
+
+
 }

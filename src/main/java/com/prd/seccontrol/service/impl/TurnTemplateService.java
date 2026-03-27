@@ -1,16 +1,20 @@
 package com.prd.seccontrol.service.impl;
 
 import com.prd.seccontrol.model.dto.CreateTurnTemplateRequest;
+import com.prd.seccontrol.model.entity.TurnAndHour;
 import com.prd.seccontrol.model.entity.TurnTemplate;
+import com.prd.seccontrol.repository.TurnAndHourRepository;
 import com.prd.seccontrol.repository.TurnTemplateRepository;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -19,6 +23,10 @@ public class TurnTemplateService {
   @Autowired
   private TurnTemplateRepository turnTemplateRepository;
 
+  @Autowired
+  private TurnAndHourRepository turnAndHourRepository;
+
+  @Transactional
   public TurnTemplate createTurnTemplate(CreateTurnTemplateRequest request) throws Exception {
     // Preferimos aceptar horas en formato "HH:mm" (por ejemplo "08:30") desde el front
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
@@ -45,6 +53,7 @@ public class TurnTemplateService {
     return turnTemplateRepository.save(turnTemplate);
   }
 
+  @Transactional
   public TurnTemplate updateTurnTemplate(Long id, CreateTurnTemplateRequest request) throws Exception {
     TurnTemplate turnTemplate = turnTemplateRepository.findById(id)
         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "TurnTemplate not found with id: " + id));
@@ -76,6 +85,12 @@ public class TurnTemplateService {
     if (request.turnType() != null) {
       turnTemplate.setTurnType(request.turnType());
     }
+
+    List<TurnAndHour> associatedTurnAndHours = turnAndHourRepository.findByTurnTemplateId(turnTemplate.getId());
+    if(!associatedTurnAndHours.isEmpty()) {
+      throw new RuntimeException("No se puede actualizar la plantilla porque está siendo usando en un contrato");
+    }
+
 
     return turnTemplateRepository.save(turnTemplate);
   }

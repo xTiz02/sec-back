@@ -64,7 +64,7 @@ public class DateGuardUnityAssignmentService {
     Integer month = monthEnum.getValue();
     Integer day = date.getDayOfMonth();
 
-    //validar que el guardia no tenga otra asistencia en otra guardia para el mismo día y hora
+    //todo validar que el guardia no tenga otra asistencia en otra guardia para el mismo día y hora
     List<DateGuardUnityAssignmentSimpleInfo> existingAssignments = dateGuardUnityAssignmentRepository
         .findByGuardUnityScheduleAssignmentIdAndDate(request.guardUnityScheduleAssignmentId(), date);
     if (!existingAssignments.isEmpty()) {

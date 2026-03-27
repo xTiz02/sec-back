@@ -35,4 +35,6 @@ public interface TurnAndHourRepository extends JpaRepository<TurnAndHour, Long> 
         WHERE t.contractScheduleUnitTemplateId = :id
       """)
   List<TurnAndHour> findFullByScheduleUnitId(@Param("id") Long id);
+
+  List<TurnAndHour> findByTurnTemplateId(Long turnTemplateId);
 }

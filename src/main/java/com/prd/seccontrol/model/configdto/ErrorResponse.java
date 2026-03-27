@@ -1,4 +1,4 @@
-package com.prd.seccontrol.model.dto;
+package com.prd.seccontrol.model.configdto;
 
 public record ErrorResponse(
     String message

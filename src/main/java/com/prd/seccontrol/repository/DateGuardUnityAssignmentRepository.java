@@ -19,12 +19,13 @@ import org.springframework.stereotype.Repository;
 public interface DateGuardUnityAssignmentRepository extends
     JpaRepository<DateGuardUnityAssignment, Long> {
 //filtrar por rango de fecha y los qeu no estan cerrados
-//  @Query("""
-//    SELECT dgua FROM DateGuardUnityAssignment dgua
-//    WHERE dgua. BETWEEN :dateTimeEntry AND :dateTimeEnd
-//    """)
-//  List<DateGuardUnityAssignment> findByDateTimeEntryBetweenDateTimeEnd(LocalDateTime dateTimeEntry, LocalDateTime dateTimeEnd , LocalDateTime today);
-//
+  @Query("""
+    SELECT dgua FROM DateGuardUnityAssignment dgua
+    WHERE dgua.finalized = false and dgua.hasExtraHours = false and dgua.toDate is null and dgua.scheduleAssignmentType != 3
+         and (dgua.dateTimeEntry <= :today or dgua.dateTimeEnd >= :today)
+    """)
+  List<DateGuardUnityAssignment> findLastActiveShifts(LocalDateTime today);
+
   @Query(
       """
                 SELECT dgua FROM DateGuardUnityAssignment dgua
@@ -155,35 +156,14 @@ public interface DateGuardUnityAssignmentRepository extends
 
   @Query("""
           SELECT new com.prd.seccontrol.model.dto.DateGuardUnityAssignmentInfo(
-              COALESCE(emp.firstName, exg.firstName),
-              COALESCE(emp.documentNumber, exg.documentNumber),
-              g.photoUrl,
-              gusa.guardType,
               dgua.id,
-              gusa.guardAssignmentId,
-              gusa.id,
               dgua.date,
-              COALESCE(cu.id, ssu.id),
-              COALESCE(u.name, ssu.unityName),
-              COALESCE(u.direction, ssu.address),
-              COALESCE(u.latitude, ssu.latitude),
-              COALESCE(u.longitude, ssu.longitude),
-              COALESCE(u.rangeCoverage, ssu.rangeCoverage),
-              dgua.turnAndHour.turnTemplate,
+              dgua.turnAndHourId,
               dgua.hasExceptions,
               dgua.hasExtraHours,
               dgua.finalized
           )
           FROM DateGuardUnityAssignment dgua
-          INNER JOIN dgua.guardUnityScheduleAssignment gusa
-          LEFT JOIN gusa.guardAssignment ga
-          LEFT JOIN ga.externalGuard exg
-          LEFT JOIN ga.guard g
-          LEFT JOIN g.employee emp
-          LEFT JOIN gusa.contractUnity cu
-          LEFT JOIN cu.unity u
-          LEFT JOIN gusa.specialServiceUnitySchedule ssus
-          LEFT JOIN ssus.specialServiceUnity ssu
           WHERE dgua.id IN :ids
       """)
   List<DateGuardUnityAssignmentInfo> findAllDateGuardUnityAssignmentInfo(
@@ -193,11 +173,14 @@ public interface DateGuardUnityAssignmentRepository extends
 
   @Query("""
           SELECT new com.prd.seccontrol.model.dto.DateGuardUnityAssignmentInfo(
+              dgua.date,
               gusa.guardType,
               dgua.id,
               gusa.guardAssignmentId,
               gusa.id,
+              se.guardUnityScheduleAssignmentId,
               tt,
+              dgua.turnAndHourId,
               dgua.hasExceptions,
               dgua.hasExtraHours,
               dgua.finalized
@@ -205,56 +188,31 @@ public interface DateGuardUnityAssignmentRepository extends
           FROM DateGuardUnityAssignment dgua
           INNER JOIN dgua.guardUnityScheduleAssignment gusa
           INNER JOIN dgua.turnAndHour.turnTemplate tt
+          LEFT JOIN ScheduleException se ON se.dateGuardUnityAssignmentId = dgua.id
           WHERE dgua.id = :dateGuardUnityAssignmentId
       """)
   Optional<DateGuardUnityAssignmentInfo> findDateGuardUnityAssignmentInfoById(
       Long dateGuardUnityAssignmentId);
 
-
   @Query("""
-  SELECT dgua.id, tt, dgua.date
+  SELECT dgua.id, tt, dgua.date, dgua.guardUnityScheduleAssignmentId, se.guardUnityScheduleAssignmentId
   FROM DateGuardUnityAssignment dgua
   LEFT JOIN dgua.turnAndHour tah
   LEFT JOIN tah.turnTemplate tt
   LEFT JOIN ScheduleException se
       ON se.dateGuardUnityAssignmentId = dgua.id
-  LEFT JOIN dgua.guardUnityScheduleAssignment gusa
-  LEFT JOIN gusa.guardAssignment ga
-  LEFT JOIN ga.guard g
-  LEFT JOIN ga.externalGuard exg
-  
-  LEFT JOIN se.guardUnityScheduleAssignment gusaEx
-  LEFT JOIN gusaEx.guardAssignment gaEx
-  LEFT JOIN gaEx.guard gEx
-  LEFT JOIN gaEx.externalGuard exgEx
-  
-  WHERE dgua.date BETWEEN :dateFrom AND :dateTo
+      
+  WHERE dgua.guardUnityScheduleAssignmentId in :guardUnityAssignmentIds and dgua.date BETWEEN :dateFrom AND :dateTo
   AND dgua.finalized = false AND dgua.toDate is null
-  AND dgua.scheduleAssignmentType=3
-  AND (
-      (
-          dgua.hasExceptions = true AND
-          (
-              (:guardId IS NOT NULL AND gEx.id = :guardId) OR
-              (:externalGuardId IS NOT NULL AND exgEx.id = :externalGuardId)
-          )
-      )
-      OR
-      (
-          dgua.hasExceptions = false AND
-          (
-              (:guardId IS NOT NULL AND g.id = :guardId) OR
-              (:externalGuardId IS NOT NULL AND exg.id = :externalGuardId)
-          )
-      )
-  )
+  AND dgua.scheduleAssignmentType != 4
+  AND se.guardUnityScheduleAssignmentId in :guardUnityAssignmentIds
+  
   ORDER BY dgua.date DESC
 """)
   List<Object[]> findLastDateGuardUnityAssignmentIds(
-      @Param("guardId") Long guardId,
-      @Param("externalGuardId") Long externalGuardId,
       @Param("dateFrom") LocalDate dateFrom,
-      @Param("dateTo") LocalDate dateTo
+      @Param("dateTo") LocalDate dateTo,
+      @Param("guardUnityAssignmentIds") Collection<Long> guardUnityAssignmentIds
   );
 
   @Query("""

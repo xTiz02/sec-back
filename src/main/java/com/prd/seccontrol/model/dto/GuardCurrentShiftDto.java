@@ -1,5 +1,6 @@
 package com.prd.seccontrol.model.dto;
 
+import com.prd.seccontrol.model.entity.GuardUnityScheduleAssignment;
 import com.prd.seccontrol.model.types.GuardType;
 import java.util.List;
 
@@ -15,9 +16,10 @@ public record GuardCurrentShiftDto(
 ) {
 
   public GuardCurrentShiftDto(DateGuardUnityAssignmentInfo info,
+      GuardUnityScheduleAssignment assignment,
       List<GuardAssistanceEventDto> todayEvents,
       GuardExtraHoursDto activeExtraHours,
-      List<GuardRequestDto> lateRequests)  {
+      List<GuardRequestDto> lateRequests) {
     this(
         info.guardName(),
         info.guardDocumentNumber(),
@@ -26,14 +28,16 @@ public record GuardCurrentShiftDto(
         new GuardShiftDto(
             info.dateGuardUnityAssignmentId(),
             info.date(),
-            new ContractUnityInfo(
-                info.contractUnityId(),
-                info.unityName(),
-                info.address(),
-                info.latitude(),
-                info.longitude(),
-                info.allowedRadius()
-            ),
+            assignment.getContractUnity() != null ? new ContractUnityInfo(
+                 assignment.getContractUnity().getId(),
+                assignment.getContractUnity().getUnity().getName(),
+                assignment.getContractUnity().getUnity().getDirection(),
+                assignment.getContractUnity().getUnity().getLatitude(),
+                assignment.getContractUnity().getUnity().getLongitude(),
+                assignment.getContractUnity().getUnity().getRangeCoverage()
+            ) : null,
+            assignment.getSpecialServiceUnitySchedule() != null
+                ? assignment.getSpecialServiceUnitySchedule().getSpecialServiceUnity() : null,
             info.turnTemplate()
         ),
         todayEvents,
@@ -43,7 +47,7 @@ public record GuardCurrentShiftDto(
 
   }
 
-  public GuardCurrentShiftDto(){
+  public GuardCurrentShiftDto() {
     this(
         null,
         null,
