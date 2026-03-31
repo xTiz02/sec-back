@@ -4,7 +4,7 @@ import com.prd.seccontrol.model.dto.CreateUnityRequest;
 import com.prd.seccontrol.model.dto.UnityDto;
 import com.prd.seccontrol.model.entity.Unity;
 import com.prd.seccontrol.repository.UnityRepository;
-import com.prd.seccontrol.service.impl.SearchService;
+import com.prd.seccontrol.service.inter.SearchService;
 import com.prd.seccontrol.service.impl.UnityService;
 import com.prd.seccontrol.util.SEConstants;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -12,14 +12,12 @@ import com.prd.seccontrol.repository.GuardAssistanceEventRepository;
 import com.prd.seccontrol.service.impl.AssistanceService;
 import com.prd.seccontrol.service.impl.DateGuardUnityAssignmentService;
 import com.prd.seccontrol.util.SEConstants;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -44,8 +42,10 @@ public class CloseAssistanceProcess {
   @Autowired
   private GuardAssistanceEventRepository guardAssistanceEventRepository;
 
+  // Todo Aligerar el proceso para que sea lo mas repido posible , evitar llamar a un DateGuardUnityAssignment completo.
   @Scheduled(fixedDelay = 5 * 60 * 1000) // 5 min después de que terminó la ejecución anterior
   public void closeAssistanceProcess() {
+//    return;
     logger.info("Iniciando proceso programado CERRADO AUTOMATICO... : " + new Date());
     try {
       LocalDateTime now = LocalDateTime.now();
@@ -88,6 +88,7 @@ public class CloseAssistanceProcess {
                   ), guard, externalGuard, localDate, localTime, true, null
               );
             } catch (Exception e) {
+              e.printStackTrace();
               logger.error(e.getMessage());
             }
           }
@@ -117,6 +118,7 @@ public class CloseAssistanceProcess {
                     ), guard, externalGuard, localDate, localTime, true, null
                 );
               } catch (Exception e) {
+                e.printStackTrace();
                 logger.error(e.getMessage());
               }
             }
@@ -141,6 +143,7 @@ public class CloseAssistanceProcess {
                   ), guard, externalGuard, localDate, localTime, true, null
               );
             } catch (Exception e) {
+              e.printStackTrace();
               logger.error(e.getMessage());
             }
 
@@ -148,6 +151,7 @@ public class CloseAssistanceProcess {
         }
       }
     } catch (Exception e) {
+      e.printStackTrace();
       logger.error("Error en proceso programado", e);
     }
     logger.info("Proceso programado finalizado CERRADO AUTOMATICO... : " + new Date());

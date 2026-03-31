@@ -4,7 +4,7 @@ import com.prd.seccontrol.model.dto.CreateExternalGuardRequest;
 import com.prd.seccontrol.model.dto.ExternalGuardDto;
 import com.prd.seccontrol.model.entity.ExternalGuard;
 import com.prd.seccontrol.repository.ExternalGuardRepository;
-import com.prd.seccontrol.service.impl.SearchService;
+import com.prd.seccontrol.service.inter.SearchService;
 import com.prd.seccontrol.util.SEConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

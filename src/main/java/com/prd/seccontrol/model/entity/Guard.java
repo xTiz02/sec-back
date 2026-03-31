@@ -14,11 +14,21 @@ public class Guard {
   @JoinColumn(name = "employeeId", referencedColumnName = "id", insertable = false,
       updatable = false)
   private Employee employee;
+  @Column(nullable = false, unique = true)
+  private String code;
   private String licenseNumber;
   private GuardType guardType;
   private String photoUrl;
 
   public Guard() {
+  }
+
+  public String getCode() {
+    return code;
+  }
+
+  public void setCode(String code) {
+    this.code = code;
   }
 
   public Long getId() {

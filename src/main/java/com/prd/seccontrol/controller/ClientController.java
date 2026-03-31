@@ -4,7 +4,7 @@ import com.prd.seccontrol.model.dto.CreateClientRequest;
 import com.prd.seccontrol.model.entity.Client;
 import com.prd.seccontrol.repository.ClientRepository;
 import com.prd.seccontrol.service.impl.ClientService;
-import com.prd.seccontrol.service.impl.SearchService;
+import com.prd.seccontrol.service.inter.SearchService;
 import com.prd.seccontrol.util.SEConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

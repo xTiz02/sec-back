@@ -1,6 +1,5 @@
-package com.prd.seccontrol.service.impl;
+package com.prd.seccontrol.service.inter;
 
-import com.prd.seccontrol.service.inter.SearchCriteria;
 import com.prd.seccontrol.util.SEConstants;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;

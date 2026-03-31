@@ -1,9 +1,10 @@
 package com.prd.seccontrol.controller;
 
 import com.prd.seccontrol.model.dto.CreateGuardRequest;
+import com.prd.seccontrol.model.dto.GuardDto;
 import com.prd.seccontrol.model.entity.Guard;
 import com.prd.seccontrol.repository.GuardRepository;
-import com.prd.seccontrol.service.impl.SearchService;
+import com.prd.seccontrol.service.inter.SearchService;
 import com.prd.seccontrol.util.SEConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -27,8 +28,8 @@ public class GuardController {
   private SearchService<Guard> searchService;
 
   @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/guard/all")
-  public Page<Guard> findAll(@RequestParam(required = false) String query,  Pageable pageable) {
-    return searchService.search(query, pageable, Guard.class);
+  public Page<GuardDto> findAll(@RequestParam(required = false) String query,  Pageable pageable) {
+    return searchService.search(query, pageable, Guard.class).map(GuardDto::new);
   }
 
   @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/guard/{id}")
@@ -37,17 +38,18 @@ public class GuardController {
   }
 
   @PostMapping(SEConstants.SECURE_BASE_ENDPOINT + "/guard")
-  public Guard createGuard(@RequestBody CreateGuardRequest request) {
+  public GuardDto createGuard(@RequestBody CreateGuardRequest request) {
     Guard guard = new Guard();
     guard.setEmployeeId(request.employeeId());
     guard.setLicenseNumber(request.licenseNumber());
     guard.setGuardType(request.guardType());
     guard.setPhotoUrl(request.photoUrl());
-    return guardRepository.save(guard);
+    guard.setCode(request.code());
+    return new GuardDto(guardRepository.save(guard));
   }
 
   @PutMapping(SEConstants.SECURE_BASE_ENDPOINT + "/guard/{id}")
-  public Guard updateGuard(@RequestBody CreateGuardRequest request, @PathVariable Long id) throws Exception {
+  public GuardDto updateGuard(@RequestBody CreateGuardRequest request, @PathVariable Long id) throws Exception {
     Guard guard = guardRepository.findById(id)
         .orElseThrow(() -> new Exception("Guard not found with id: " + id));
     guard.setEmployeeId(
@@ -56,7 +58,8 @@ public class GuardController {
         request.licenseNumber() != null ? request.licenseNumber() : guard.getLicenseNumber());
     guard.setGuardType(request.guardType() != null ? request.guardType() : guard.getGuardType());
     guard.setPhotoUrl(request.photoUrl() != null ? request.photoUrl() : guard.getPhotoUrl());
-    return guardRepository.save(guard);
+    guard.setCode(request.code() != null ? request.code() : guard.getCode());
+    return new GuardDto(guardRepository.save(guard));
   }
 
   @DeleteMapping(SEConstants.SECURE_BASE_ENDPOINT + "/guard/{id}")

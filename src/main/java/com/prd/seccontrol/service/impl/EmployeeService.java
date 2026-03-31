@@ -6,12 +6,14 @@ import com.prd.seccontrol.model.entity.Employee;
 import com.prd.seccontrol.repository.EmployeeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class EmployeeService {
   @Autowired
   private EmployeeRepository employeeRepository;
 
+  @Transactional
   public EmployeeDto createEmployee(CreateEmployeeRequest request) {
     Employee employee = new Employee();
     employee.setFirstName(request.firstName());
@@ -30,6 +32,7 @@ public class EmployeeService {
     return new EmployeeDto(savedEmployee);
   }
 
+  @Transactional
   public EmployeeDto updateEmployee(CreateEmployeeRequest request, Long id) {
     Employee employee = employeeRepository.findById(id).orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
     employee.setFirstName(request.firstName() != null ? request.firstName() : employee.getFirstName());

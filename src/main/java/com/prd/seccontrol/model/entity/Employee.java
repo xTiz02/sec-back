@@ -4,6 +4,7 @@ import com.prd.seccontrol.model.types.Country;
 import com.prd.seccontrol.model.types.EmployeeType;
 import com.prd.seccontrol.model.types.Gender;
 import com.prd.seccontrol.model.types.IdentificationType;
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -17,6 +18,7 @@ public class Employee {
   @Id
   @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
   private Long id;
+  @Column(unique = true)
   private Long userId;
   @OneToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "userId",referencedColumnName = "id", insertable = false, updatable = false)

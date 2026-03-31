@@ -5,7 +5,7 @@ import com.prd.seccontrol.model.dto.ContractScheduleUnitTemplateDto;
 import com.prd.seccontrol.model.dto.TurnAndHourDto;
 import com.prd.seccontrol.model.dto.WeeklyScheduleSummaryDto;
 import com.prd.seccontrol.model.entity.ContractScheduleUnitTemplate;
-import com.prd.seccontrol.repository.ContractScheduleTemplateRepository;
+import com.prd.seccontrol.repository.ContractScheduleUnitTemplateRepository;
 import com.prd.seccontrol.repository.TurnAndHourRepository;
 import com.prd.seccontrol.repository.TurnTemplateRepository;
 import com.prd.seccontrol.service.impl.ContractScheduleService;
@@ -24,7 +24,7 @@ public class ContractScheduleController {
   private ContractScheduleService contractScheduleService;
 
   @Autowired
-  private ContractScheduleTemplateRepository contractScheduleTemplateRepository;
+  private ContractScheduleUnitTemplateRepository contractScheduleUnitTemplateRepository;
 
   @Autowired
   private TurnAndHourRepository turnAndHourRepository;
@@ -44,7 +44,7 @@ public class ContractScheduleController {
 
   @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/contract-schedule/{contractUnityId}/summary")
   public List<ContractScheduleUnitTemplateDto> getContractScheduleSummary(@PathVariable Long contractUnityId) {
-    List<ContractScheduleUnitTemplate> list = contractScheduleTemplateRepository.findByContractUnityId(contractUnityId);
+    List<ContractScheduleUnitTemplate> list = contractScheduleUnitTemplateRepository.findByContractUnityId(contractUnityId);
     List<Long> contractScheduleUnitIds = list.stream().map(ContractScheduleUnitTemplate::getId).toList();
     List<TurnAndHourDto> turnsAndHours = turnAndHourRepository.findByContractScheduleUnitTemplateIdIn(contractScheduleUnitIds)
         .stream()

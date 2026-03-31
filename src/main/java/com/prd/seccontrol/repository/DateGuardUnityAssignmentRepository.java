@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -195,20 +194,24 @@ public interface DateGuardUnityAssignmentRepository extends
       Long dateGuardUnityAssignmentId);
 
   @Query("""
-  SELECT dgua.id, tt, dgua.date, dgua.guardUnityScheduleAssignmentId, se.guardUnityScheduleAssignmentId
-  FROM DateGuardUnityAssignment dgua
-  LEFT JOIN dgua.turnAndHour tah
-  LEFT JOIN tah.turnTemplate tt
-  LEFT JOIN ScheduleException se
-      ON se.dateGuardUnityAssignmentId = dgua.id
+      SELECT dgua.id, tt, dgua.date, dgua.guardUnityScheduleAssignmentId, se.guardUnityScheduleAssignmentId
+      FROM DateGuardUnityAssignment dgua
+      LEFT JOIN dgua.turnAndHour tah
+      LEFT JOIN tah.turnTemplate tt
+      LEFT JOIN ScheduleException se
+          ON se.dateGuardUnityAssignmentId = dgua.id
       
-  WHERE dgua.guardUnityScheduleAssignmentId in :guardUnityAssignmentIds and dgua.date BETWEEN :dateFrom AND :dateTo
-  AND dgua.finalized = false AND dgua.toDate is null
-  AND dgua.scheduleAssignmentType != 4
-  AND se.guardUnityScheduleAssignmentId in :guardUnityAssignmentIds
-  
-  ORDER BY dgua.date DESC
-""")
+      WHERE dgua.guardUnityScheduleAssignmentId IN :guardUnityAssignmentIds
+      AND dgua.date BETWEEN :dateFrom AND :dateTo
+      AND dgua.finalized = false
+      AND dgua.toDate IS NULL
+      AND dgua.scheduleAssignmentType != 4
+      AND (
+          se.guardUnityScheduleAssignmentId IS NULL
+          OR se.guardUnityScheduleAssignmentId IN :guardUnityAssignmentIds
+      )
+      ORDER BY dgua.date DESC
+      """)
   List<Object[]> findLastDateGuardUnityAssignmentIds(
       @Param("dateFrom") LocalDate dateFrom,
       @Param("dateTo") LocalDate dateTo,

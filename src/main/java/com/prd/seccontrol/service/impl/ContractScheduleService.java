@@ -13,7 +13,7 @@ import com.prd.seccontrol.model.entity.TurnTemplate;
 import com.prd.seccontrol.model.types.DayOfWeek;
 import com.prd.seccontrol.model.types.TurnType;
 import com.prd.seccontrol.repository.ClientContractRepository;
-import com.prd.seccontrol.repository.ContractScheduleTemplateRepository;
+import com.prd.seccontrol.repository.ContractScheduleUnitTemplateRepository;
 import com.prd.seccontrol.repository.ContractUnityRepository;
 import com.prd.seccontrol.repository.TurnAndHourRepository;
 import com.prd.seccontrol.repository.TurnTemplateRepository;
@@ -32,7 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ContractScheduleService {
 
   @Autowired
-  private ContractScheduleTemplateRepository contractScheduleTemplateRepository;
+  private ContractScheduleUnitTemplateRepository contractScheduleUnitTemplateRepository;
 
   @Autowired
   private ContractUnityRepository contractUnityRepository;
@@ -61,7 +61,7 @@ public class ContractScheduleService {
 
     for (ContractUnity contractUnity : contractUnities) {
 
-      List<Long> scheduleIds = contractScheduleTemplateRepository.findContractScheduleIdByContractUnityId(
+      List<Long> scheduleIds = contractScheduleUnitTemplateRepository.findContractScheduleIdByContractUnityId(
           contractUnity.getId());
 
       List<TurnAndHour> turnAndHours = turnAndHourRepository.findByContractScheduleUnitTemplateIdIn(
@@ -141,7 +141,7 @@ public class ContractScheduleService {
       validateDaysOfWeek(requestUnit.days());
       // check if contract unity exists for add or update schedule
       if (requestUnit.contractUnityId() != null) {
-        List<Long> scheduleIds = contractScheduleTemplateRepository.findContractScheduleIdByContractUnityId(
+        List<Long> scheduleIds = contractScheduleUnitTemplateRepository.findContractScheduleIdByContractUnityId(
             requestUnit.contractUnityId());
 
         List<TurnAndHour> turnAndHours = turnAndHourRepository.findByContractScheduleUnitTemplateIdIn(
@@ -159,7 +159,7 @@ public class ContractScheduleService {
               c.setContractUnityId(requestUnit.contractUnityId());
               c.setDayOfWeek(d.dayOfWeek());
 
-              c = contractScheduleTemplateRepository.save(c);
+              c = contractScheduleUnitTemplateRepository.save(c);
               return c;
             })
             .toList();
@@ -195,7 +195,7 @@ public class ContractScheduleService {
           if (!turnAndHourList.isEmpty()) {
             if (existingTurnAndHourIds.isEmpty()) {
               turnAndHourRepository.deleteByContractScheduleUnitTemplateId(scheduleUnit.getId());
-              contractScheduleTemplateRepository.deleteById(scheduleUnit.getId());
+              contractScheduleUnitTemplateRepository.deleteById(scheduleUnit.getId());
               verifyAndDeleteIfContractUnityEmpty(requestUnit.contractUnityId());
             } else {
               turnAndHourRepository
@@ -241,7 +241,7 @@ public class ContractScheduleService {
           scheduleUnit.setDayOfWeek(dayTurn.dayOfWeek());
           scheduleUnitsToSave.add(scheduleUnit);
         }
-        List<ContractScheduleUnitTemplate> savedScheduleUnits = contractScheduleTemplateRepository.saveAll(
+        List<ContractScheduleUnitTemplate> savedScheduleUnits = contractScheduleUnitTemplateRepository.saveAll(
             scheduleUnitsToSave);
         List<TurnAndHour> turnAndHoursToSave = new ArrayList<>();
 
@@ -264,7 +264,7 @@ public class ContractScheduleService {
   }
 
   public void verifyAndDeleteIfContractUnityEmpty(Long contractUnityId) {
-    List<Long> scheduleIds = contractScheduleTemplateRepository.findContractScheduleIdByContractUnityId(
+    List<Long> scheduleIds = contractScheduleUnitTemplateRepository.findContractScheduleIdByContractUnityId(
         contractUnityId);
 
     if (scheduleIds.isEmpty()) {
@@ -273,12 +273,12 @@ public class ContractScheduleService {
   }
 
   public void deleteContractUnit(Long contractUnitId) {
-    List<Long> scheduleIds = contractScheduleTemplateRepository.findContractScheduleIdByContractUnityId(
+    List<Long> scheduleIds = contractScheduleUnitTemplateRepository.findContractScheduleIdByContractUnityId(
         contractUnitId);
 
     if (!scheduleIds.isEmpty()) {
       turnAndHourRepository.deleteByContractScheduleUnitTemplateIdIn(scheduleIds);
-      contractScheduleTemplateRepository.deleteByContractUnityId(contractUnitId);
+      contractScheduleUnitTemplateRepository.deleteByContractUnityId(contractUnitId);
     }
     contractUnityRepository.deleteById(contractUnitId);
   }
@@ -302,7 +302,7 @@ public class ContractScheduleService {
     scheduleUnit.setNumOfGuards(totalGuardsAssigned);
     scheduleUnit.setNumTurnDay(totalTurnDaysAssigned);
     scheduleUnit.setNumTurnNight(totalTurnNightsAssigned);
-    contractScheduleTemplateRepository.save(scheduleUnit);
+    contractScheduleUnitTemplateRepository.save(scheduleUnit);
   }
 
   public void validateDaysOfWeek(List<DayTurnAssignment> assignments) {

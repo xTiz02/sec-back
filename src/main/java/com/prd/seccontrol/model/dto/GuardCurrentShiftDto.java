@@ -21,13 +21,13 @@ public record GuardCurrentShiftDto(
       GuardExtraHoursDto activeExtraHours,
       List<GuardRequestDto> lateRequests) {
     this(
-        info.guardName(),
-        info.guardDocumentNumber(),
-        info.guardPhotoUrl(),
-        info.guardType() != null && info.guardType().equals(GuardType.ROTATING),
+        info.getGuardName(),
+        info.getGuardDocumentNumber(),
+        info.getGuardPhotoUrl(),
+        info.getGuardType() != null && info.getGuardType().equals(GuardType.ROTATING),
         new GuardShiftDto(
-            info.dateGuardUnityAssignmentId(),
-            info.date(),
+            info.getDateGuardUnityAssignmentId(),
+            info.getDate(),
             assignment.getContractUnity() != null ? new ContractUnityInfo(
                  assignment.getContractUnity().getId(),
                 assignment.getContractUnity().getUnity().getName(),
@@ -38,7 +38,7 @@ public record GuardCurrentShiftDto(
             ) : null,
             assignment.getSpecialServiceUnitySchedule() != null
                 ? assignment.getSpecialServiceUnitySchedule().getSpecialServiceUnity() : null,
-            info.turnTemplate()
+            info.getTurnTemplate()
         ),
         todayEvents,
         activeExtraHours,

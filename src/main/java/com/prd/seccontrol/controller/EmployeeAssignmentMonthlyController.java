@@ -5,7 +5,7 @@ import com.prd.seccontrol.model.dto.EmployeeAssignmentMonthlyDto;
 import com.prd.seccontrol.model.entity.EmployeeAssignmentMonthly;
 import com.prd.seccontrol.repository.EmployeeAssignmentMonthlyRepository;
 import com.prd.seccontrol.service.impl.EmployeeAssignmentMonthlyService;
-import com.prd.seccontrol.service.impl.SearchService;
+import com.prd.seccontrol.service.inter.SearchService;
 import com.prd.seccontrol.util.SEConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

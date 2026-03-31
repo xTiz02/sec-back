@@ -6,7 +6,7 @@ import com.prd.seccontrol.model.entity.Client;
 import com.prd.seccontrol.model.entity.ClientContract;
 import com.prd.seccontrol.repository.ClientContractRepository;
 import com.prd.seccontrol.repository.ClientRepository;
-import com.prd.seccontrol.service.impl.SearchService;
+import com.prd.seccontrol.service.inter.SearchService;
 import com.prd.seccontrol.util.SEConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -45,6 +45,7 @@ public class ClientContractController {
     clientContract.setClientId(client.getId());
     clientContract.setName(request.name());
     clientContract.setDescription(request.description());
+    clientContract.setCode(request.code());
     clientContract.setActive(request.active());
     clientContract = clientContractRepository.save(clientContract);
     return new ClientContractDto(clientContract);
@@ -61,6 +62,7 @@ public class ClientContractController {
     clientContract.setName(request.name() != null ? request.name() : clientContract.getName());
     clientContract.setDescription(request.description() != null ? request.description() : clientContract.getDescription());
     clientContract.setActive(request.active() != null ? request.active() : clientContract.getActive());
+    clientContract.setCode(request.code() != null ? request.code() : clientContract.getCode());
     clientContract = clientContractRepository.save(clientContract);
     return new ClientContractDto(clientContract);
   }

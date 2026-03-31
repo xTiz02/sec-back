@@ -3,7 +3,7 @@ package com.prd.seccontrol.controller;
 import com.prd.seccontrol.model.dto.CreateTurnTemplateRequest;
 import com.prd.seccontrol.model.entity.TurnTemplate;
 import com.prd.seccontrol.repository.TurnTemplateRepository;
-import com.prd.seccontrol.service.impl.SearchService;
+import com.prd.seccontrol.service.inter.SearchService;
 import com.prd.seccontrol.service.impl.TurnTemplateService;
 import com.prd.seccontrol.util.SEConstants;
 import java.util.List;

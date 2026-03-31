@@ -1,5 +1,6 @@
 package com.prd.seccontrol.model.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -17,6 +18,8 @@ public class ClientContract {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
   private String name;
+  @Column(unique = true)
+  private String code;
   private String description;
   private Long clientId;
   @OneToOne
@@ -35,6 +38,14 @@ public class ClientContract {
 
   public void setActive(Boolean active) {
     this.active = active;
+  }
+
+  public String getCode() {
+    return code;
+  }
+
+  public void setCode(String code) {
+    this.code = code;
   }
 
   public String getName() {

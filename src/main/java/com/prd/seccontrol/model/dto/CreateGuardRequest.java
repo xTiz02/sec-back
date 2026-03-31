@@ -7,6 +7,7 @@ public record CreateGuardRequest(
     Long employeeId,
     String licenseNumber,
     GuardType guardType,
+    String code,
     String photoUrl
 ) {
 

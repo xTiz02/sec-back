@@ -20,6 +20,11 @@ public class TurnTemplate {
   public TurnTemplate() {
   }
 
+  public TurnTemplate(LocalTime timeFrom, LocalTime timeTo) {
+    this.timeFrom = timeFrom;
+    this.timeTo = timeTo;
+  }
+
   public Long getId() {
     return id;
   }

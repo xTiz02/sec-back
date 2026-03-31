@@ -1,28 +1,23 @@
 package com.prd.seccontrol.service.impl;
 
-import com.prd.seccontrol.model.dto.ContractUnityInfo;
 import com.prd.seccontrol.model.dto.CreateAssistanceEventRequest;
 import com.prd.seccontrol.model.dto.DateGuardUnityAssignmentInfo;
 import com.prd.seccontrol.model.dto.GuardAssistanceEventDto;
 import com.prd.seccontrol.model.dto.GuardCurrentShiftDto;
 import com.prd.seccontrol.model.dto.GuardExtraHoursDto;
 import com.prd.seccontrol.model.dto.GuardRequestDto;
-import com.prd.seccontrol.model.dto.GuardShiftDto;
-import com.prd.seccontrol.model.entity.DateGuardUnityAssignment;
 import com.prd.seccontrol.model.entity.ExternalGuard;
 import com.prd.seccontrol.model.entity.Guard;
 import com.prd.seccontrol.model.entity.GuardAssignment;
 import com.prd.seccontrol.model.entity.GuardAssistanceEvent;
 import com.prd.seccontrol.model.entity.GuardExtraHours;
 import com.prd.seccontrol.model.entity.GuardUnityScheduleAssignment;
-import com.prd.seccontrol.model.entity.ScheduleException;
 import com.prd.seccontrol.model.entity.ScheduleMonthly;
 import com.prd.seccontrol.model.entity.SpecialServiceUnitySchedule;
 import com.prd.seccontrol.model.entity.TurnTemplate;
 import com.prd.seccontrol.model.entity.User;
 import com.prd.seccontrol.model.types.AssistanceProblemType;
 import com.prd.seccontrol.model.types.AssistanceType;
-import com.prd.seccontrol.model.types.GuardType;
 import com.prd.seccontrol.repository.DateGuardUnityAssignmentRepository;
 import com.prd.seccontrol.repository.ExternalGuardRepository;
 import com.prd.seccontrol.repository.GuardAssistanceEventRepository;
@@ -36,14 +31,11 @@ import com.prd.seccontrol.repository.SpecialServiceUnityScheduleRepository;
 import com.prd.seccontrol.repository.UserRepository;
 import com.prd.seccontrol.util.SEConstants;
 import java.security.Principal;
-import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
 import java.util.List;
-import java.util.Optional;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -115,7 +107,8 @@ public class AssistanceService {
 
     List<GuardUnityScheduleAssignment> activeGuardUnityScheduleAssignments = guardUnityScheduleAssignmentRepository.
         findByGuardIdAndScheduleMonthlyIdsOrSpecialServiceUnityScheduleIds(
-            activeSpecialScheduleIds, activeScheduleMonthlyIds,
+            activeSpecialScheduleIds.isEmpty() ? null : activeScheduleMonthlyIds,
+            activeScheduleMonthlyIds.isEmpty() ? null : activeSpecialScheduleIds,
             guard != null ? guard.getId() : null,
             externalGuard != null ? externalGuard.getId() : null);
 
@@ -124,8 +117,8 @@ public class AssistanceService {
 
     List<Object[]> availableDatesGuards =
         dateGuardUnityAssignmentRepository.findLastDateGuardUnityAssignmentIds(
-            today.minus(Duration.ofDays(SEConstants.INTERVAL_DAYS)),
-            today.plus(Duration.ofDays(SEConstants.INTERVAL_DAYS)),
+            today.minusDays(SEConstants.INTERVAL_DAYS),
+            today.plusDays(SEConstants.INTERVAL_DAYS),
             activeGuardUnityScheduleAssignmentIds
         );
 
@@ -171,9 +164,14 @@ public class AssistanceService {
     }
 
     DateGuardUnityAssignmentInfo sampleInfo = dateGuardUnityAssignmentInfos.get(0);
+
+    // set TurnTemplate and GuardUnityAssignmentId to sampleInfo because they are needed to complete
+    sampleInfo.setTurnTemplate((TurnTemplate) firts[1]);
+    sampleInfo.setGuardUnityAssignmentId(firts[3] != null ? (Long) firts[3] : (Long) firts[4]);
+
     DateGuardUnityAssignmentInfo finalSampleInfo = sampleInfo;
     GuardUnityScheduleAssignment gusa = activeGuardUnityScheduleAssignments.stream()
-        .filter(a -> a.getId().equals(finalSampleInfo.getDateGuardUnityAssignmentId()))
+        .filter(a -> a.getId().equals(finalSampleInfo.getGuardUnityAssignmentId()))
         .findFirst()
         .orElse(null);
 
@@ -259,6 +257,10 @@ public class AssistanceService {
           .orElseThrow(() -> new RuntimeException("GuardUnityScheduleAssignment not found"));
 
       dateGuardUnityAssignmentInfo = completeShiftSimpleInfo(seGusa, dateGuardUnityAssignmentInfo);
+    } else {
+      GuardUnityScheduleAssignment gusa = guardUnityScheduleAssignmentRepository.findById(dateGuardUnityAssignmentInfo.getGuardUnityAssignmentId())
+          .orElseThrow(() -> new RuntimeException("GuardUnityScheduleAssignment not found"));
+      dateGuardUnityAssignmentInfo = completeShiftSimpleInfo(gusa, dateGuardUnityAssignmentInfo);
     }
 
     String documentNumber = guard != null ? guard.getEmployee().getDocumentNumber() : externalGuard.getDocumentNumber();
@@ -342,8 +344,8 @@ public class AssistanceService {
     event.setLongitude(request.longitude());
     event.setLatitude(request.latitude());
     event.setPhotoUrl(null); //TODO: save photo and set url
-    event.setMarkDate(today);
-    event.setMarkTime(todayTime);
+    event.setMarkDate(isSystem ? null : today);
+    event.setMarkTime(isSystem ? null : todayTime);
     event.setSystemMark(isSystem ? LocalDateTime.of(today, todayTime) : null);
 
     event = guardAssistanceEventRepository.save(event);

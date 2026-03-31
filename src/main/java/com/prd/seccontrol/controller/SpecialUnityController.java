@@ -3,7 +3,7 @@ package com.prd.seccontrol.controller;
 import com.prd.seccontrol.model.dto.CreateSpecialServiceUnityRequest;
 import com.prd.seccontrol.model.entity.SpecialServiceUnity;
 import com.prd.seccontrol.repository.SpecialServiceUnityRepository;
-import com.prd.seccontrol.service.impl.SearchService;
+import com.prd.seccontrol.service.inter.SearchService;
 import com.prd.seccontrol.util.SEConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

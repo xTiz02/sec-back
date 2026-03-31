@@ -41,6 +41,15 @@ public class GuardUnityScheduleAssignmentController {
         .toList();
   }
 
+  //Todo Traer solo los datos necesarios que el front utiliza, no toda la entidad dto(mas de 1200 puede ser)
+  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/guard-unity-schedule/by-schedule-monthly")
+  public List<GuardUnityScheduleAssignmentDto> findByMonthId(@RequestParam Long scheduleMonthlyId) {
+    return guardUnityScheduleAssignmentRepository.findByScheduleMonthlyId(scheduleMonthlyId)
+        .stream()
+        .map(GuardUnityScheduleAssignmentDto::new)
+        .toList();
+  }
+
   @Transactional
   @PostMapping(SEConstants.SECURE_BASE_ENDPOINT + "/guard-unity-schedule")
   public GuardUnityScheduleAssignmentDto createGuardUnityScheduleAssignment(@RequestBody CreateGuardMonthlyAssignmentRequest request){

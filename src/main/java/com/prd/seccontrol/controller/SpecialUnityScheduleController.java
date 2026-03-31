@@ -7,7 +7,7 @@ import com.prd.seccontrol.model.dto.SpecialServiceScheduleDto;
 import com.prd.seccontrol.model.dto.SpecialServiceScheduleSummaryDto;
 import com.prd.seccontrol.model.entity.SpecialServiceUnitySchedule;
 import com.prd.seccontrol.repository.SpecialServiceUnityScheduleRepository;
-import com.prd.seccontrol.service.impl.SearchService;
+import com.prd.seccontrol.service.inter.SearchService;
 import com.prd.seccontrol.service.impl.SpecialUnityScheduleService;
 import com.prd.seccontrol.util.SEConstants;
 import java.time.LocalDate;
