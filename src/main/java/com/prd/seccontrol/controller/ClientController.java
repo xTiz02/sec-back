@@ -9,6 +9,7 @@ import com.prd.seccontrol.util.SEConstants;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -48,5 +49,10 @@ public class ClientController {
   @PutMapping(SEConstants.SECURE_BASE_ENDPOINT + "/client/{id}")
   public Client updateClient(@RequestBody CreateClientRequest request, @PathVariable Long id) throws Exception {
     return clientService.updateClient(request, id);
+  }
+
+  @DeleteMapping(SEConstants.SECURE_BASE_ENDPOINT + "/client/{id}")
+  public void deleteClient(@PathVariable Long id) {
+    clientRepository.deleteById(id);
   }
 }

@@ -21,6 +21,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+  // todo implementar una tabla que guarda el ultimo token en un tabla de la base de datos,
+  //  y cada vez que se genera un nuevo token, se actualiza esa tabla, y en el filtro se compara
+  //  el token con el ultimo token guardado en la base de datos, si no coincide, se invalida el token
   @Autowired
   private JwtService jwtService;
 

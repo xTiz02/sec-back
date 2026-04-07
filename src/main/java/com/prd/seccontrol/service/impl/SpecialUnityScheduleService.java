@@ -189,6 +189,7 @@ public class SpecialUnityScheduleService {
             newDayOfMonth.setMonth(monthEnum);
             newDayOfMonth.setYear(year);
             newDayOfMonth.setDayOfWeek(DayOfWeek.fromJavaDayOfWeek(assignmentDate.getDayOfWeek()));
+            newDayOfMonth.setDate(assignmentDate);
 
             WeekOfMonth weekOfMonth = dateGuardUnityAssignmentService.findOrCreateWeek(
                 assignmentDate);

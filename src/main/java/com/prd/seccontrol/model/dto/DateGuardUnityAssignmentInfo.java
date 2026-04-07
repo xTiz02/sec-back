@@ -3,7 +3,6 @@ package com.prd.seccontrol.model.dto;
 import com.prd.seccontrol.model.entity.TurnTemplate;
 import com.prd.seccontrol.model.types.GuardType;
 import java.time.LocalDate;
-import org.springframework.cglib.core.Local;
 
 public class DateGuardUnityAssignmentInfo {
 
@@ -19,6 +18,8 @@ public class DateGuardUnityAssignmentInfo {
   private Long contractUnityId;
   private Long specialServiceUnityId;
   private String unityName;
+  private String clientName;
+  private String guardCode;
   private String address;
   private Double latitude;
   private Double longitude;
@@ -43,6 +44,8 @@ public class DateGuardUnityAssignmentInfo {
       Long contractUnityId,
       Long specialServiceUnityId,
       String unityName,
+      String clientName,
+      String guardCode,
       String address,
       Double latitude,
       Double longitude,
@@ -64,6 +67,8 @@ public class DateGuardUnityAssignmentInfo {
     this.contractUnityId = contractUnityId;
     this.specialServiceUnityId = specialServiceUnityId;
     this.unityName = unityName;
+    this.clientName = clientName;
+    this.guardCode = guardCode;
     this.address = address;
     this.latitude = latitude;
     this.longitude = longitude;
@@ -150,6 +155,21 @@ public class DateGuardUnityAssignmentInfo {
     this.finalized = finalized;
   }
 
+  public String getGuardCode() {
+    return guardCode;
+  }
+
+  public void setGuardCode(String guardCode) {
+    this.guardCode = guardCode;
+  }
+
+  public String getClientName() {
+    return clientName;
+  }
+
+  public void setClientName(String clientName) {
+    this.clientName = clientName;
+  }
 
   public String getGuardDocumentNumber() {
     return guardDocumentNumber;

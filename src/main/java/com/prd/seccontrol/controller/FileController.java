@@ -34,9 +34,9 @@ public class FileController {
     }
     // todo validar que existe el contrato,, que las unidades existan en el contrato y que los guardias existan
     try {
-      MonthlySchedule schedule = readerService.readFromMultipart(file);
+      MonthlySchedule schedule = readerService.readFromMultipart(file, true);
 
-      printFullDetail(schedule);
+//      printFullDetail(schedule);
 
       return ResponseEntity.ok(Map.of(
           "yearMonth",  schedule.getYearMonth().toString(),

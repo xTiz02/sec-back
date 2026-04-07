@@ -2,8 +2,10 @@ package com.prd.seccontrol.controller;
 
 import com.prd.seccontrol.model.dto.CreateUnityRequest;
 import com.prd.seccontrol.model.dto.UnityDto;
+import com.prd.seccontrol.model.dto.UnityLiteView;
 import com.prd.seccontrol.model.entity.Unity;
 import com.prd.seccontrol.repository.UnityRepository;
+import com.prd.seccontrol.service.impl.ShiftFilterService;
 import com.prd.seccontrol.service.inter.SearchService;
 import com.prd.seccontrol.service.impl.UnityService;
 import com.prd.seccontrol.util.SEConstants;
@@ -30,6 +32,9 @@ public class UnityController {
 
   @Autowired
   private UnityService unityService;
+
+  @Autowired
+  private ShiftFilterService shiftFilterService;
 
   @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/unity/all")
   public Page<UnityDto> findAll(@RequestParam(required = false) String query, Pageable
@@ -60,5 +65,10 @@ public class UnityController {
         .orElseThrow(() -> new Exception("Unity not found with id: " + id));
     unityRepository.delete(unity);
     return id;
+  }
+
+  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/unity/lite-search")
+  public Page<UnityLiteView> findGeneralUnities(@RequestParam String searchTerm, Pageable pageable) {
+    return shiftFilterService.findGeneralUnities(searchTerm ,pageable);
   }
 }

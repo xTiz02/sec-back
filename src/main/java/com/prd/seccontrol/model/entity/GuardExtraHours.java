@@ -18,32 +18,26 @@ public class GuardExtraHours {
   @Id
   @GeneratedValue(strategy = jakarta.persistence.GenerationType.IDENTITY)
   private Long id;
-  private Long dateGuardUnityAssignmentId;
-  private Long guardAssistanceEventId;
-  @OneToOne
-  @JoinColumn(name = "guardAssistanceEventId", referencedColumnName = "id", updatable = false,
-      insertable = false)
-  private GuardAssistanceEvent guardAssistanceEvent;
-  private Long guardUnityScheduleAssignmentId;
+  private Long principalDateGuardUnityAssignmentId;
   @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "guardUnityScheduleAssignmentId", referencedColumnName = "id", updatable = false,
+  @JoinColumn(name = "principalDateGuardUnityAssignmentId", referencedColumnName = "id", updatable = false,
       insertable = false)
-  private GuardUnityScheduleAssignment guardUnityScheduleAssignment;
+  private DateGuardUnityAssignment principalDateGuardUnityAssignment; // turno que se esta cumpliendo
 
-  private Long getDateGuardUnityAssignmentId;
+  private Long coverDateGuardUnityAssignmentId;
   @OneToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "dateGuardUnityAssignmentId", referencedColumnName = "id", updatable = false,
+  @JoinColumn(name = "coverDateGuardUnityAssignmentId", referencedColumnName = "id", updatable = false,
       insertable = false)
-  private DateGuardUnityAssignment dateGuardUnityAssignment;
-  private Long guardAssignmentId;
-  @OneToOne
-  @JoinColumn(name = "guardAssignmentId", referencedColumnName = "id", updatable = false, insertable = false)
-  private GuardAssignment guardAssignment;
+  private DateGuardUnityAssignment coverDateGuardUnityAssignment; // turno que se esta cubriendo
   private LocalDate startDate;
   private LocalTime startTime;
   private LocalDate endDate;
   private  LocalTime endTime;
   private Integer extraHours;
+  private Long operatorUserId;//usuario que registra las hora extra
+  @OneToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "operatorUserId", referencedColumnName = "id", updatable = false, insertable = false)
+  private User operatorUser;
 
   @CreationTimestamp
   private LocalDateTime createdAt;
@@ -58,24 +52,58 @@ public class GuardExtraHours {
     this.endDate = endDate;
   }
 
+  public User getOperatorUser() {
+    return operatorUser;
+  }
+
+  public void setOperatorUser(User operatorUser) {
+    this.operatorUser = operatorUser;
+  }
+
+  public Long getOperatorUserId() {
+    return operatorUserId;
+  }
+
+  public void setOperatorUserId(Long operatorUserId) {
+    this.operatorUserId = operatorUserId;
+  }
+
+  public DateGuardUnityAssignment getCoverDateGuardUnityAssignment() {
+    return coverDateGuardUnityAssignment;
+  }
+
+  public void setCoverDateGuardUnityAssignment(
+      DateGuardUnityAssignment coverDateGuardUnityAssignment) {
+    this.coverDateGuardUnityAssignment = coverDateGuardUnityAssignment;
+  }
+
+  public Long getPrincipalDateGuardUnityAssignmentId() {
+    return principalDateGuardUnityAssignmentId;
+  }
+
+  public void setPrincipalDateGuardUnityAssignmentId(Long principalDateGuardUnityAssignmentId) {
+    this.principalDateGuardUnityAssignmentId = principalDateGuardUnityAssignmentId;
+  }
+
+  public DateGuardUnityAssignment getPrincipalDateGuardUnityAssignment() {
+    return principalDateGuardUnityAssignment;
+  }
+
+  public void setPrincipalDateGuardUnityAssignment(
+      DateGuardUnityAssignment principalDateGuardUnityAssignment) {
+    this.principalDateGuardUnityAssignment = principalDateGuardUnityAssignment;
+  }
+
+  public Long getCoverDateGuardUnityAssignmentId() {
+    return coverDateGuardUnityAssignmentId;
+  }
+
+  public void setCoverDateGuardUnityAssignmentId(Long coverDateGuardUnityAssignmentId) {
+    this.coverDateGuardUnityAssignmentId = coverDateGuardUnityAssignmentId;
+  }
+
   public LocalTime getEndTime() {
     return endTime;
-  }
-
-  public GuardAssignment getGuardAssignment() {
-    return guardAssignment;
-  }
-
-  public void setGuardAssignment(GuardAssignment guardAssignment) {
-    this.guardAssignment = guardAssignment;
-  }
-
-  public Long getGuardAssignmentId() {
-    return guardAssignmentId;
-  }
-
-  public void setGuardAssignmentId(Long guardAssignmentId) {
-    this.guardAssignmentId = guardAssignmentId;
   }
 
   public void setEndTime(LocalTime endTime) {
@@ -106,30 +134,7 @@ public class GuardExtraHours {
     this.createdAt = createdAt;
   }
 
-  public DateGuardUnityAssignment getDateGuardUnityAssignment() {
-    return dateGuardUnityAssignment;
-  }
 
-  public void setDateGuardUnityAssignment(
-      DateGuardUnityAssignment dateGuardUnityAssignment) {
-    this.dateGuardUnityAssignment = dateGuardUnityAssignment;
-  }
-
-  public Long getDateGuardUnityAssignmentId() {
-    return dateGuardUnityAssignmentId;
-  }
-
-  public void setDateGuardUnityAssignmentId(Long dateGuardUnityAssignmentId) {
-    this.dateGuardUnityAssignmentId = dateGuardUnityAssignmentId;
-  }
-
-  public Long getGetDateGuardUnityAssignmentId() {
-    return getDateGuardUnityAssignmentId;
-  }
-
-  public void setGetDateGuardUnityAssignmentId(Long getDateGuardUnityAssignmentId) {
-    this.getDateGuardUnityAssignmentId = getDateGuardUnityAssignmentId;
-  }
 
   public Integer getExtraHours() {
     return extraHours;
@@ -139,39 +144,7 @@ public class GuardExtraHours {
     this.extraHours = extraHours;
   }
 
-  public GuardAssistanceEvent getGuardAssistanceEvent() {
-    return guardAssistanceEvent;
-  }
 
-  public void setGuardAssistanceEvent(
-      GuardAssistanceEvent guardAssistanceEvent) {
-    this.guardAssistanceEvent = guardAssistanceEvent;
-  }
-
-  public Long getGuardAssistanceEventId() {
-    return guardAssistanceEventId;
-  }
-
-  public void setGuardAssistanceEventId(Long guardAssistanceEventId) {
-    this.guardAssistanceEventId = guardAssistanceEventId;
-  }
-
-  public GuardUnityScheduleAssignment getGuardUnityScheduleAssignment() {
-    return guardUnityScheduleAssignment;
-  }
-
-  public void setGuardUnityScheduleAssignment(
-      GuardUnityScheduleAssignment guardUnityScheduleAssignment) {
-    this.guardUnityScheduleAssignment = guardUnityScheduleAssignment;
-  }
-
-  public Long getGuardUnityScheduleAssignmentId() {
-    return guardUnityScheduleAssignmentId;
-  }
-
-  public void setGuardUnityScheduleAssignmentId(Long guardUnityScheduleAssignmentId) {
-    this.guardUnityScheduleAssignmentId = guardUnityScheduleAssignmentId;
-  }
 
   public Long getId() {
     return id;

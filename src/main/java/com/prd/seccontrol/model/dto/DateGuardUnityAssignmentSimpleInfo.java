@@ -1,18 +1,9 @@
 package com.prd.seccontrol.model.dto;
 
-import com.prd.seccontrol.model.entity.DayOfMonth;
-import com.prd.seccontrol.model.entity.GuardUnityScheduleAssignment;
-import com.prd.seccontrol.model.entity.TurnAndHour;
 import com.prd.seccontrol.model.types.DayOfWeek;
 import com.prd.seccontrol.model.types.ScheduleAssignmentType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 public record DateGuardUnityAssignmentSimpleInfo(
     Long id,
@@ -33,13 +24,15 @@ public record DateGuardUnityAssignmentSimpleInfo(
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
     Long contractUnityId,
-    Long specialServiceId
+    Long specialServiceId,
+    LocalDateTime entry,
+    LocalDateTime exit
 ) {
  public DateGuardUnityAssignmentSimpleInfo(Long id, Long dayOfMonthId, Long guardUnityScheduleAssignmentId,
      Long turnAndHourId, DayOfWeek dayOfWeek, Integer numDay, LocalDate date,
      ScheduleAssignmentType scheduleAssignmentType, LocalDate toDate, boolean hasVacation,
      boolean hasExceptions, boolean finalized, boolean hasExtraHours, LocalDateTime createdAt,
-     LocalDateTime updatedAt, Long contractUnityId, Long specialServiceId) {
+     LocalDateTime updatedAt, Long contractUnityId, Long specialServiceId, LocalDateTime entry, LocalDateTime exit) {
 
    this.id = id;
    this.dayOfMonthId = dayOfMonthId;
@@ -58,5 +51,7 @@ public record DateGuardUnityAssignmentSimpleInfo(
    this.updatedAt = updatedAt;
    this.contractUnityId = contractUnityId;
     this.specialServiceId = specialServiceId;
+    this.entry = entry;
+    this.exit = exit;
  }
 }

@@ -6,9 +6,11 @@ import com.prd.seccontrol.model.entity.ExternalGuard;
 import com.prd.seccontrol.model.entity.Guard;
 import com.prd.seccontrol.model.entity.GuardAssistanceEvent;
 import com.prd.seccontrol.model.types.AssistanceType;
+import com.prd.seccontrol.model.types.ScheduleAssignmentType;
 import com.prd.seccontrol.repository.DateGuardUnityAssignmentRepository;
 import com.prd.seccontrol.repository.GuardAssignmentRepository;
 import com.prd.seccontrol.repository.GuardAssistanceEventRepository;
+import com.prd.seccontrol.repository.GuardExtraHoursRepository;
 import com.prd.seccontrol.service.impl.AssistanceService;
 import com.prd.seccontrol.service.impl.DateGuardUnityAssignmentService;
 import com.prd.seccontrol.util.SEConstants;
@@ -42,8 +44,11 @@ public class CloseAssistanceProcess {
   @Autowired
   private GuardAssistanceEventRepository guardAssistanceEventRepository;
 
+  @Autowired
+  private GuardExtraHoursRepository guardExtraHoursRepository;
+
   // Todo Aligerar el proceso para que sea lo mas repido posible , evitar llamar a un DateGuardUnityAssignment completo.
-  @Scheduled(fixedDelay = 5 * 60 * 1000) // 5 min después de que terminó la ejecución anterior
+  @Scheduled(fixedDelay = 10 * 60 * 1000) // 10 min después de que terminó la ejecución anterior
   public void closeAssistanceProcess() {
 //    return;
     logger.info("Iniciando proceso programado CERRADO AUTOMATICO... : " + new Date());
@@ -61,36 +66,23 @@ public class CloseAssistanceProcess {
         LocalDateTime entry = shift.getDateTimeEntry();
         LocalDateTime end = shift.getDateTimeEnd();
         LocalDateTime maxMarkEndTime = end.plusMinutes(SEConstants.EXIT_AVAILABLE_TIME);
-        LocalDateTime maxMarkEntryTime = entry.plusMinutes(SEConstants.ENTRY_TOLERANCE);
+        LocalDateTime maxMarkEntryTime = entry.plusMinutes(
+            SEConstants.ENTRY_TOLERANCE);
 
         Guard guard = shift.getGuardUnityScheduleAssignment().getGuardTypeAssignment().getGuard();
-        ExternalGuard externalGuard = shift.getGuardUnityScheduleAssignment().getGuardTypeAssignment().getExternalGuard();
+        ExternalGuard externalGuard = shift.getGuardUnityScheduleAssignment()
+            .getGuardTypeAssignment().getExternalGuard();
 
         List<GuardAssistanceEvent> events = totalEvents.stream()
             .filter(e -> e.getDateGuardUnityAssignmentId().equals(shift.getId())).toList();
-        if(events.stream().anyMatch(e -> e.getAssistanceType().equals(AssistanceType.EXIT))){
+        if (events.stream().anyMatch(e -> e.getAssistanceType().equals(AssistanceType.EXIT))) {
           continue;
         }
 
         if (events.isEmpty()) {
           if (maxMarkEndTime.isBefore(now)) {
-            //mark all events
-          } else if (maxMarkEntryTime.isBefore(now)) {
-            //mark system entry assistance event
-            try {
-              assistanceService.markAssist(
-                  new CreateAssistanceEventRequest(
-                      shift.getId(),
-                      AssistanceType.ENTRY,
-                      null,
-                      null,
-                      null
-                  ), guard, externalGuard, localDate, localTime, true, null
-              );
-            } catch (Exception e) {
-              e.printStackTrace();
-              logger.error(e.getMessage());
-            }
+            //mark absence assistance event
+            dateGuardUnityAssignmentRepository.updateAbsentScheduleAssistanceById(ScheduleAssignmentType.ABSENT, shift.getId());
           }
         } else {
           //mark missing events
@@ -124,13 +116,13 @@ public class CloseAssistanceProcess {
             }
           }
 
-          if(startBreak == null && endBreak == null) {
-            if(now.isAfter(end.minusMinutes(SEConstants.BREAK_AUTO_CLOSE_TIME_BEFORE_EXIT))){
+          if (startBreak == null && endBreak == null) {
+            if (now.isAfter(end.minusMinutes(SEConstants.BREAK_AUTO_CLOSE_TIME_BEFORE_EXIT))) {
               //mark system break start and end assistance events
             }
           }
 
-          if(now.isAfter(maxMarkEndTime)) {
+          if (now.isAfter(maxMarkEndTime)) {
             //mark system exit assistance event
             try {
               assistanceService.markAssist(

@@ -6,6 +6,8 @@ public record GuardUnityScheduleSummaryDto(
     Long gusaId,
     Long guardId,
     String guardCode,
+    Long contractUnityId,
+    String unityCode,
     GuardType guardType
 ) {
 

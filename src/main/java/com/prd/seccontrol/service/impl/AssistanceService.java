@@ -6,6 +6,7 @@ import com.prd.seccontrol.model.dto.GuardAssistanceEventDto;
 import com.prd.seccontrol.model.dto.GuardCurrentShiftDto;
 import com.prd.seccontrol.model.dto.GuardExtraHoursDto;
 import com.prd.seccontrol.model.dto.GuardRequestDto;
+import com.prd.seccontrol.model.dto.LiveAssistanceEventDto;
 import com.prd.seccontrol.model.entity.ExternalGuard;
 import com.prd.seccontrol.model.entity.Guard;
 import com.prd.seccontrol.model.entity.GuardAssignment;
@@ -29,14 +30,19 @@ import com.prd.seccontrol.repository.ScheduleExceptionRepository;
 import com.prd.seccontrol.repository.ScheduleMonthlyRepository;
 import com.prd.seccontrol.repository.SpecialServiceUnityScheduleRepository;
 import com.prd.seccontrol.repository.UserRepository;
+import com.prd.seccontrol.service.inter.AwsS3Service;
 import com.prd.seccontrol.util.SEConstants;
+import java.io.IOException;
 import java.security.Principal;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
 import java.util.List;
+import java.util.UUID;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -78,6 +84,12 @@ public class AssistanceService {
 
   @Autowired
   private ScheduleMonthlyRepository scheduleMonthlyRepository;
+
+  @Autowired
+  private SimpMessagingTemplate simpMessagingTemplate;
+
+  @Autowired
+  private AwsS3Service awsS3Service;
 
   public GuardCurrentShiftDto getGuardCurrentShift(Principal principal) {
     LocalDate today = LocalDate.now();
@@ -175,7 +187,7 @@ public class AssistanceService {
         .findFirst()
         .orElse(null);
 
-    if(gusa == null) {
+    if (gusa == null) {
       return new GuardCurrentShiftDto();
     }
     sampleInfo = completeShiftSimpleInfo(gusa, sampleInfo);
@@ -203,15 +215,22 @@ public class AssistanceService {
     GuardExtraHours activeExtraHours = null;
 
     String coveredGuardName = null;
+
+    //todo aligerar esto
     if (exitEvent != null && sampleInfo.isHasExtraHours()) {
-      activeExtraHours = guardExtraHoursRepository.findByGuardAssistanceEventId(exitEvent.id())
+      activeExtraHours = guardExtraHoursRepository.findByPrincipalDateGuardUnityAssignmentId(
+              sampleInfo.getDateGuardUnityAssignmentId())
           .orElse(null);
       if (activeExtraHours != null) {
-        GuardAssignment guardAssignment = activeExtraHours.getGuardAssignment();
-        Guard cguard = guardAssignment.getGuard();
-        ExternalGuard cexternalGuard = guardAssignment.getExternalGuard();
-        coveredGuardName =
-            cguard != null ? cguard.getEmployee().getFirstName() : cexternalGuard.getFirstName();
+        if(activeExtraHours.getCoverDateGuardUnityAssignmentId() != null) {
+          GuardAssignment guardAssignment = activeExtraHours.getCoverDateGuardUnityAssignment()
+              .getGuardUnityScheduleAssignment()
+              .getGuardAssignment();
+          Guard cguard = guardAssignment.getGuard();
+          ExternalGuard cexternalGuard = guardAssignment.getExternalGuard();
+          coveredGuardName =
+              cguard != null ? cguard.getEmployee().getFirstName() : cexternalGuard.getFirstName();
+        }
       }
     }
 
@@ -244,32 +263,39 @@ public class AssistanceService {
   }
 
   @Transactional
-  public GuardAssistanceEventDto markAssist(CreateAssistanceEventRequest request, Guard guard, ExternalGuard externalGuard,
-      LocalDate today, LocalTime todayTime, boolean isSystem, Principal principal) {
+  public GuardAssistanceEventDto markAssist(CreateAssistanceEventRequest request, Guard guard,
+      ExternalGuard externalGuard,
+      LocalDate today, LocalTime todayTime, boolean isSystem, Principal principal)
+      throws IOException {
 
     DateGuardUnityAssignmentInfo dateGuardUnityAssignmentInfo =
         dateGuardUnityAssignmentRepository.findDateGuardUnityAssignmentInfoById(
                 request.dateGuardUnityAssignmentId())
             .orElseThrow(() -> new RuntimeException("Shift not found"));
+
     // todo validar que el assistanceType tenga eventos anteriores si corresponde.
     if (dateGuardUnityAssignmentInfo.isHasException()) {
-      GuardUnityScheduleAssignment seGusa = guardUnityScheduleAssignmentRepository.findById(dateGuardUnityAssignmentInfo.getSeGuardUnityAssignmentId())
+      GuardUnityScheduleAssignment seGusa = guardUnityScheduleAssignmentRepository.findById(
+              dateGuardUnityAssignmentInfo.getSeGuardUnityAssignmentId())
           .orElseThrow(() -> new RuntimeException("GuardUnityScheduleAssignment not found"));
 
       dateGuardUnityAssignmentInfo = completeShiftSimpleInfo(seGusa, dateGuardUnityAssignmentInfo);
     } else {
-      GuardUnityScheduleAssignment gusa = guardUnityScheduleAssignmentRepository.findById(dateGuardUnityAssignmentInfo.getGuardUnityAssignmentId())
+      GuardUnityScheduleAssignment gusa = guardUnityScheduleAssignmentRepository.findById(
+              dateGuardUnityAssignmentInfo.getGuardUnityAssignmentId())
           .orElseThrow(() -> new RuntimeException("GuardUnityScheduleAssignment not found"));
       dateGuardUnityAssignmentInfo = completeShiftSimpleInfo(gusa, dateGuardUnityAssignmentInfo);
     }
 
-    String documentNumber = guard != null ? guard.getEmployee().getDocumentNumber() : externalGuard.getDocumentNumber();
+    String documentNumber =
+        guard != null ? guard.getEmployee().getDocumentNumber() : externalGuard.getDocumentNumber();
 
-    if (!dateGuardUnityAssignmentInfo.getGuardDocumentNumber().equals(documentNumber)) {
+    // todo validar para excepcion por el porceso de cerrado(no deja si hay excepcion)
+    if (!isSystem && !dateGuardUnityAssignmentInfo.getGuardDocumentNumber().equals(documentNumber)) {
       throw new RuntimeException("No se puede marcar asistencia para esta asignación");
     }
 
-    LocalDateTime[] shiftDateTimes = turnTemplateService.getShiftDateTimeRange(today,
+    LocalDateTime[] shiftDateTimes = turnTemplateService.getShiftDateTimeRange(dateGuardUnityAssignmentInfo.getDate(),
         dateGuardUnityAssignmentInfo.getTurnTemplate());
     LocalDateTime shiftStartDateTime = shiftDateTimes[0];
     LocalDateTime shiftEndDateTime = shiftDateTimes[1];
@@ -284,16 +310,21 @@ public class AssistanceService {
       toleranceMinutes = SEConstants.ENTRY_TOLERANCE;
       limitTimeToMark = shiftStartDateTime.plusMinutes(SEConstants.ENTRY_TOLERANCE);
       isLate = markTime.isAfter(limitTimeToMark);
-      if (markTime.isBefore(shiftStartDateTime.minusMinutes(SEConstants.ENTRY_AVAILABLE_TIME))) {
+
+      if (!isSystem && markTime.isBefore(
+          shiftStartDateTime.minusMinutes(SEConstants.ENTRY_AVAILABLE_TIME))) {
         throw new RuntimeException(
             "Solo se puede marcar el ingreso " + SEConstants.ENTRY_AVAILABLE_TIME
                 + " minutos antes del inicio del turno");
       }
+
     }
 
     if (request.assistanceType().equals(AssistanceType.BREAK_START)) {
       orderNumber = 1;
-      limitTimeToMark = shiftEndDateTime.minusMinutes(SEConstants.BREAK_AUTO_CLOSE_TIME_BEFORE_EXIT + SEConstants.BREAK_TIME + SEConstants.BREAK_EXIT_TOLERANCE);
+      limitTimeToMark = shiftEndDateTime.minusMinutes(
+          SEConstants.BREAK_AUTO_CLOSE_TIME_BEFORE_EXIT + SEConstants.BREAK_TIME
+              + SEConstants.BREAK_EXIT_TOLERANCE);
     }
 
     if (request.assistanceType().equals(AssistanceType.BREAK_END)) {
@@ -308,7 +339,7 @@ public class AssistanceService {
       limitTimeToMark = startBreakDateTime.plusMinutes(
           SEConstants.BREAK_TIME + SEConstants.BREAK_EXIT_TOLERANCE);
       isLate = markTime.isAfter(limitTimeToMark);
-      if (markTime.isBefore(startBreakDateTime.plusMinutes(SEConstants.BREAK_TIME))) {
+      if (!isSystem && markTime.isBefore(startBreakDateTime.plusMinutes(SEConstants.BREAK_TIME))) {
         throw new RuntimeException(
             "Solo se puede marcar el fin del descanso después de " + SEConstants.BREAK_TIME
                 + " minutos desde el inicio del descanso");
@@ -317,13 +348,11 @@ public class AssistanceService {
 
     if (request.assistanceType().equals(AssistanceType.EXIT)) {
       orderNumber = 3;
-      dateGuardUnityAssignmentRepository.updateFinalizedByIds(true,
-          List.of(request.dateGuardUnityAssignmentId()));
 
       limitTimeToMark = shiftEndDateTime.plusMinutes(SEConstants.EXIT_AVAILABLE_TIME);
       isLate = markTime.isAfter(limitTimeToMark);
       toleranceMinutes = SEConstants.EXIT_AVAILABLE_TIME;
-      if (markTime.isBefore(shiftEndDateTime)) {
+      if (!isSystem && markTime.isBefore(shiftEndDateTime)) {
         throw new RuntimeException(
             "Solo se puede marcar la salida " + SEConstants.EXIT_AVAILABLE_TIME
                 + " minutos después del fin del turno");
@@ -343,44 +372,81 @@ public class AssistanceService {
     event.setNumberOrder(orderNumber);
     event.setLongitude(request.longitude());
     event.setLatitude(request.latitude());
-    event.setPhotoUrl(null); //TODO: save photo and set url
+    event.setPhotoUrl(null);
     event.setMarkDate(isSystem ? null : today);
     event.setMarkTime(isSystem ? null : todayTime);
     event.setSystemMark(isSystem ? LocalDateTime.of(today, todayTime) : null);
 
     event = guardAssistanceEventRepository.save(event);
 
+    if (event.getAssistanceType().equals(AssistanceType.ENTRY)) {
+      dateGuardUnityAssignmentRepository.updateHasMarksById(true,
+          request.dateGuardUnityAssignmentId());
+      GuardExtraHours coverExtraHours = guardExtraHoursRepository.findByCoverDateGuardUnityAssignmentId(
+              dateGuardUnityAssignmentInfo.getDateGuardUnityAssignmentId())
+          .orElse(null);
+      if (coverExtraHours != null) {
+        coverExtraHours.setEndDate(today);
+        coverExtraHours.setEndTime(todayTime);
+        if(coverExtraHours.getStartDate() != null) {
+          coverExtraHours.setExtraHours((int)
+              Duration.between(LocalDateTime.of(coverExtraHours.getStartDate(), coverExtraHours.getStartTime()),
+                  LocalDateTime.of(today, todayTime)).toMinutes());
+        }
+        guardExtraHoursRepository.save(coverExtraHours);
+      }
+    }
+    if (event.getAssistanceType().equals(AssistanceType.EXIT)) {
+      dateGuardUnityAssignmentRepository.updateFinalizedByIds(true,
+          List.of(request.dateGuardUnityAssignmentId()));
+    }
+
     GuardAssistanceEventDto assistanceEventDto = new GuardAssistanceEventDto(event);
 
-    return assistanceEventDto;
-  }
+    if (!isSystem) {
+      LiveAssistanceEventDto liveAssistanceEventDto = new LiveAssistanceEventDto(
+          event.getId(),
+          event.getDateGuardUnityAssignmentId(),
+          event.getGuardAssignmentId(),
+          dateGuardUnityAssignmentInfo.getGuardName(),
+          dateGuardUnityAssignmentInfo.getGuardCode(),
+          dateGuardUnityAssignmentInfo.getGuardDocumentNumber(),
+          dateGuardUnityAssignmentInfo.getContractUnityId(),
+          dateGuardUnityAssignmentInfo.getUnityName(),
+          dateGuardUnityAssignmentInfo.getClientName(),
+          event.getPhotoUrl(),
+          event.getLatitude(),
+          event.getLongitude(),
+          event.getMarkDate(),
+          event.getMarkTime(),
+          event.getSystemMark(),
+          event.getAssistanceType(),
+          event.getAssistanceProblemType(),
+          event.getToleranceMinutes(),
+          dateGuardUnityAssignmentInfo.getGuardType(),
+          event.getNumberOrder());
 
-
-  public DateGuardUnityAssignmentInfo setExceptionDateGuardFields(
-      Guard guard, ExternalGuard externalGuard, DateGuardUnityAssignmentInfo info) {
-    if (externalGuard != null) {
-      return new DateGuardUnityAssignmentInfo(
-          externalGuard.getFirstName(),
-          externalGuard.getDocumentNumber(),
-          null,
-          info.getGuardType(),
-          info.getDateGuardUnityAssignmentId(),
-          info.getGuardAssignmentId(),
-          info
-      );
-    } else if (guard != null) {
-      return new DateGuardUnityAssignmentInfo(
-          guard.getEmployee().getFirstName(),
-          guard.getEmployee().getDocumentNumber(),
-          guard.getPhotoUrl(),
-          guard.getGuardType(),
-          info.getDateGuardUnityAssignmentId(),
-          info.getGuardAssignmentId(),
-          info
-      );
-    } else {
-      return info;
+      simpMessagingTemplate.convertAndSend("/topic/assists", liveAssistanceEventDto);
     }
+
+    if (request.photo() != null && !request.photo().isEmpty()) {
+      String path = "";
+      if(request.photo().getOriginalFilename() == null){
+        path = event.getId() + "-" + UUID.randomUUID()+ ".jpg";
+      } else {
+        path = event.getId() + "-" + UUID.randomUUID() + "-" + request.photo().getOriginalFilename();
+      }
+      System.out.println(path);
+//      Boolean photoUrl = awsS3Service.uploadFile(path, request.photo());
+//      if (photoUrl) {
+//        String url = awsS3Service.getFileUrl(path);
+//        event.setPhotoUrl(url);
+//        guardAssistanceEventRepository.save(event);
+//        assistanceEventDto = new GuardAssistanceEventDto(event);
+//      }
+    }
+
+      return assistanceEventDto;
   }
 
   public DateGuardUnityAssignmentInfo completeShiftSimpleInfo(GuardUnityScheduleAssignment gusa,
@@ -388,12 +454,14 @@ public class AssistanceService {
     String guardName = null;
     String guardDocumentNumber = null;
     String guardPhotoUrl = null;
-
+    String guardCode = null;
+    String clientName = null;
     if (gusa.getGuardAssignment().getGuard() != null) {
       Guard guard = gusa.getGuardAssignment().getGuard();
       guardName = guard.getEmployee().getFirstName();
       guardDocumentNumber = guard.getEmployee().getDocumentNumber();
       guardPhotoUrl = guard.getPhotoUrl();
+      guardCode = guard.getCode();
     } else if (gusa.getGuardAssignment().getExternalGuardId() != null) {
       ExternalGuard externalGuard = gusa.getGuardAssignment().getExternalGuard();
       guardName = externalGuard.getFirstName();
@@ -405,18 +473,21 @@ public class AssistanceService {
     Double longitude = null;
     Double allowedRadius = null;
 
-    if(gusa.getContractUnity() != null){
+    if (gusa.getContractUnity() != null) {
       unityName = gusa.getContractUnity().getUnity().getName();
       address = gusa.getContractUnity().getUnity().getDirection();
       latitude = gusa.getContractUnity().getUnity().getLatitude();
       longitude = gusa.getContractUnity().getUnity().getLongitude();
       allowedRadius = gusa.getContractUnity().getUnity().getRangeCoverage();
-    } else if(gusa.getSpecialServiceUnitySchedule() != null && gusa.getSpecialServiceUnitySchedule().getSpecialServiceUnity() != null){
+      clientName = gusa.getContractUnity().getClientContract().getClient().getName();
+    } else if (gusa.getSpecialServiceUnitySchedule() != null
+        && gusa.getSpecialServiceUnitySchedule().getSpecialServiceUnity() != null) {
       unityName = gusa.getSpecialServiceUnitySchedule().getSpecialServiceUnity().getUnityName();
       address = gusa.getSpecialServiceUnitySchedule().getSpecialServiceUnity().getAddress();
       latitude = gusa.getSpecialServiceUnitySchedule().getSpecialServiceUnity().getLatitude();
       longitude = gusa.getSpecialServiceUnitySchedule().getSpecialServiceUnity().getLongitude();
-      allowedRadius = gusa.getSpecialServiceUnitySchedule().getSpecialServiceUnity().getRangeCoverage();
+      allowedRadius = gusa.getSpecialServiceUnitySchedule().getSpecialServiceUnity()
+          .getRangeCoverage();
     }
 
     return new DateGuardUnityAssignmentInfo(
@@ -424,134 +495,11 @@ public class AssistanceService {
         info.getDateGuardUnityAssignmentId(), gusa.getGuardAssignmentId(), gusa.getId(),
         info.getDate(), gusa.getContractUnityId(),
         gusa.getSpecialServiceUnitySchedule() != null ? gusa.getSpecialServiceUnitySchedule()
-            .getSpecialServiceUnityId() : null, unityName, address, latitude, longitude, allowedRadius,
-        info.getTurnTemplate(), info.getTurnAndHourId(), info.isHasException(), info.isHasExtraHours(),
+            .getSpecialServiceUnityId() : null, unityName, clientName, guardCode, address, latitude,
+        longitude, allowedRadius,
+        info.getTurnTemplate(), info.getTurnAndHourId(), info.isHasException(),
+        info.isHasExtraHours(),
         info.isFinalized());
   }
-
-//  public GuardCurrentShiftDto getGuardCurrentShift(Principal principal) {
-//    LocalDate today = LocalDate.now();
-//    LocalTime now = LocalTime.now();
-//    User user = userRepository.findByUsername(principal.getName())
-//        .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//    Guard guard = guardRepository.findByEmployee_UserId(user.getId())
-//        .orElse(null);
-//
-//    ExternalGuard externalGuard = externalGuardRepository.findByUserId(user.getId())
-//        .orElse(null);
-//
-//    List<Object[]> availableDatesGuards =
-//        dateGuardUnityAssignmentRepository.findLastDateGuardUnityAssignmentIds(
-//            guard != null ? guard.getId() : null,
-//            externalGuard != null ? externalGuard.getId() : null,
-//            today.minus(Duration.ofDays(SEConstants.INTERVAL_DAYS)),
-//            today.plus(Duration.ofDays(SEConstants.INTERVAL_DAYS))
-//        );
-//
-//    if (availableDatesGuards.isEmpty()) {
-//      return new GuardCurrentShiftDto();
-//    }
-//
-//    //order by date and dateFrom
-//    Object[] firts = availableDatesGuards.stream().min((a, b) -> {
-//          LocalDateTime[] dateTimesA = turnTemplateService.getShiftDateTimeRange((LocalDate) a[2],
-//              (TurnTemplate) a[1]);
-//          LocalDateTime[] dateTimesB = turnTemplateService.getShiftDateTimeRange((LocalDate) b[2],
-//              (TurnTemplate) b[1]);
-//          LocalDateTime startA = dateTimesA[0];
-//          LocalDateTime endA = dateTimesA[1];
-//          LocalDateTime startB = dateTimesB[0];
-//          LocalDateTime endB = dateTimesB[1];
-//          if (startA.isBefore(startB)) {
-//            return -1;
-//          } else if (startA.isAfter(startB)) {
-//            return 1;
-//          } else {
-//            if (endA.isBefore(endB)) {
-//              return -1;
-//            } else if (endA.isAfter(endB)) {
-//              return 1;
-//            } else {
-//              return 0;
-//            }
-//          }
-//        })
-//        .orElse(null);
-//
-//    Long dateGuardUnityAssignmentId = (Long) firts[0];
-//
-//    //get complete info of shift
-//    List<DateGuardUnityAssignmentInfo> dateGuardUnityAssignmentInfos =
-//        dateGuardUnityAssignmentRepository.findAllDateGuardUnityAssignmentInfo(
-//            List.of(dateGuardUnityAssignmentId));
-//
-//    if (dateGuardUnityAssignmentInfos.isEmpty()) {
-//      return new GuardCurrentShiftDto();
-//    }
-//
-//    DateGuardUnityAssignmentInfo sampleInfo = dateGuardUnityAssignmentInfos.get(0);
-//    boolean isException = sampleInfo.hasException();
-//
-//    if (isException) {
-//      setExceptionDateGuardFields(guard, externalGuard, sampleInfo);
-//    }
-//
-//    List<GuardAssistanceEventDto> assistanceEvents = guardAssistanceEventRepository.findByDateGuardUnityAssignmentId(
-//            sampleInfo.dateGuardUnityAssignmentId())
-//        .stream()
-//        .map(GuardAssistanceEventDto::new)
-//        .toList();
-//
-//    List<Long> assistanceEventIds = assistanceEvents.stream().map(GuardAssistanceEventDto::id)
-//        .toList();
-//
-//    GuardAssistanceEventDto exitEvent = assistanceEvents.stream()
-//        .filter(e -> e.assistanceType().equals(AssistanceType.EXIT))
-//        .findFirst()
-//        .orElse(null);
-//
-//    GuardExtraHours activeExtraHours = null;
-//
-//    String coveredGuardName = null;
-//    if (exitEvent != null && sampleInfo.hasExtraHours()) {
-//      activeExtraHours = guardExtraHoursRepository.findByGuardAssistanceEventId(exitEvent.id())
-//          .orElse(null);
-//      if (activeExtraHours != null) {
-//        GuardAssignment guardAssignment = activeExtraHours.getGuardAssignment();
-//        Guard cguard = guardAssignment.getGuard();
-//        ExternalGuard cexternalGuard = guardAssignment.getExternalGuard();
-//        coveredGuardName =
-//            cguard != null ? cguard.getEmployee().getFirstName() : cexternalGuard.getFirstName();
-//      }
-//    }
-//
-//    boolean hasLateEvents = assistanceEvents.stream()
-//        .anyMatch(e -> e.assistanceProblemType() != null &&
-//            (e.assistanceProblemType().equals(AssistanceProblemType.LATE) ||
-//                e.assistanceProblemType().equals(AssistanceProblemType.LATE_JUSTIFIED)));
-//    List<GuardRequestDto> lateRequests =
-//        hasLateEvents ? guardRequestRepository.findByGuardAssistanceEventIdIn(
-//                assistanceEventIds)
-//            .stream()
-//            .map(lr -> {
-//              GuardAssistanceEventDto eventDto = assistanceEvents.stream()
-//                  .filter(e -> e.id().equals(lr.getGuardAssistanceEventId()))
-//                  .findFirst()
-//                  .orElse(null);
-//              return new GuardRequestDto(lr, eventDto.assistanceType());
-//            })
-//            .toList() : List.of();
-//
-//    GuardCurrentShiftDto currentShiftDto = new GuardCurrentShiftDto(
-//        sampleInfo,
-//        assistanceEvents,
-//        activeExtraHours != null ? new GuardExtraHoursDto(activeExtraHours, coveredGuardName)
-//            : null,
-//        lateRequests);
-//
-//    return currentShiftDto;
-//  }
-
 
 }

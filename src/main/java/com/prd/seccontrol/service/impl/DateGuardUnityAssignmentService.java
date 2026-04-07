@@ -12,6 +12,7 @@ import com.prd.seccontrol.model.dto.CreateDailyAssignmentRequest;
 import com.prd.seccontrol.model.dto.DateGuardUnityAssignmentDto;
 import com.prd.seccontrol.model.dto.DateGuardUnityAssignmentSimpleInfo;
 import com.prd.seccontrol.model.dto.GuardUnityScheduleSummaryDto;
+import com.prd.seccontrol.model.dto.NextShiftToCoverDto;
 import com.prd.seccontrol.model.entity.ClientContract;
 import com.prd.seccontrol.model.entity.DateGuardUnityAssignment;
 import com.prd.seccontrol.model.entity.DayOfMonth;
@@ -37,6 +38,7 @@ import com.prd.seccontrol.repository.TurnAndHourRepository;
 import com.prd.seccontrol.repository.TurnTemplateRepository;
 import com.prd.seccontrol.repository.WeekOfMonthRepository;
 import com.prd.seccontrol.service.inter.ScheduleExcelReaderService;
+import com.prd.seccontrol.util.SEConstants;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Month;
@@ -106,7 +108,7 @@ public class DateGuardUnityAssignmentService {
     Integer month = monthEnum.getValue();
     Integer day = date.getDayOfMonth();
 
-    //todo validar que el guardia no tenga otra asistencia en otra guardia para el mismo día y hora
+    //todo validar que el guardia no tenga un turno asignado para ese día, o una asignación de vacaciones, o un día libre, dependiendo del tipo de asignación que se está creando.
     List<DateGuardUnityAssignmentSimpleInfo> existingAssignments = dateGuardUnityAssignmentRepository
         .findByGuardUnityScheduleAssignmentIdAndDate(request.guardUnityScheduleAssignmentId(),
             date);
@@ -215,7 +217,6 @@ public class DateGuardUnityAssignmentService {
   }
 
 
-  @Transactional
   public WeekOfMonth findOrCreateWeek(LocalDate date) {
 
     LocalDate startOfWeek = date.with(TemporalAdjusters.previousOrSame(java.time.DayOfWeek.MONDAY));
@@ -242,10 +243,36 @@ public class DateGuardUnityAssignmentService {
         });
   }
 
+  public List<NextShiftToCoverDto> getNextShiftsToCoverForGuard(Long shiftId) {
+    DateGuardUnityAssignmentSimpleInfo shiftInfo = dateGuardUnityAssignmentRepository.findDtoByIdV2(
+            shiftId)
+        .orElseThrow(() -> new RuntimeException("Shift not found with id: " + shiftId));
+    DayOfMonth dayOfMonth = dayOfMonthRepository.findById(shiftInfo.dayOfMonthId())
+        .orElseThrow(() -> new RuntimeException(
+            "DayOfMonth not found with id: " + shiftInfo.dayOfMonthId()));
+    LocalDate nextDay = dayOfMonth.getDate().plusDays(1);
+
+    DayOfMonth nextDayOfMonth = dayOfMonthRepository.findByMonthAndDayOfMonthAndYear(
+            nextDay.getMonth(), nextDay.getDayOfMonth(), nextDay.getYear())
+        .orElse(null);
+
+    List<Long> nextDayShiftIds = new ArrayList<>();
+    nextDayShiftIds.add(dayOfMonth.getId());
+    if (nextDayOfMonth != null) {
+      nextDayShiftIds.add(nextDayOfMonth.getId());
+    }
+
+    List<NextShiftToCoverDto> nextShifts = dateGuardUnityAssignmentRepository.findNextShiftsToCover(
+        shiftInfo.contractUnityId(), shiftInfo.specialServiceId(), nextDayShiftIds,
+        shiftInfo.exit().plusMinutes(
+            SEConstants.EXIT_AVAILABLE_TIME), shiftInfo.exit().plusHours(12L));
+
+    return nextShifts;
+  }
+
   @Transactional
   public Map<String,Long> createsDatesGuardAssignmentsFromExcel(MultipartFile file) throws Exception {
-    //todo agregar una validadcion de toda carga se debe hacer maximo 1 dia antes de que empiece el mes.
-    MonthlySchedule monthlySchedule = scheduleExcelReaderService.readFromMultipart(file);
+    MonthlySchedule monthlySchedule = scheduleExcelReaderService.readFromMultipart(file, false);
     ClientContract clientContract = clientContractRepository.findByCode(
         monthlySchedule.getContractCode()).orElseThrow(() -> new RuntimeException(
         "ClientContract not found with code: " + monthlySchedule.getContractCode()));
@@ -277,46 +304,12 @@ public class DateGuardUnityAssignmentService {
         .map(row -> (Long) row[0])
         .toList();
 
+    List<Long> contractUnitIds = unitTemplates.stream()
+        .map(ContractScheduleSummaryDto::contractUnityId)
+        .toList();
+
     List<GuardUnityScheduleSummaryDto> existenceGuardScheduleAssignments = guardUnityScheduleAssignmentRepository
-        .findIdsByGuardIdAndScheduleMonthlyId(guardIds, scheduleMonthly.getId());
-
-    //Create guardScheduleAssignment if not exist with guardCode
-    List<GuardUnityScheduleSummaryDto> createdGuardScheduleAssignments = new ArrayList<>();
-    for (Long guardId : guardIds) {
-      boolean exists = existenceGuardScheduleAssignments.stream()
-          .anyMatch(existing -> existing.guardId().equals(guardId));
-      if (!exists) {
-        GuardAssignment guardAssignment = new GuardAssignment();
-        guardAssignment.setGuardId(guardId);
-        guardAssignment.setActive(true);
-        guardAssignment = guardAssignmentRepository.save(guardAssignment);
-
-        GuardType guardType = guardIdCode.stream()
-            .filter(row -> ((Long) row[0]).equals(guardId))
-            .map(row -> (GuardType) row[2])
-            .findFirst()
-            .orElseThrow(
-                () -> new RuntimeException("Guard type not found for guardId: " + guardId));
-        GuardUnityScheduleAssignment newAssignment = new GuardUnityScheduleAssignment();
-        newAssignment.setGuardAssignmentId(guardAssignment.getId());
-        newAssignment.setScheduleMonthlyId(scheduleMonthly.getId());
-        newAssignment.setGuardType(guardType);
-        guardUnityScheduleAssignmentRepository.save(newAssignment);
-        createdGuardScheduleAssignments.add(new GuardUnityScheduleSummaryDto(
-            newAssignment.getId(),
-            guardId,
-            guardIdCode.stream()
-                .filter(row -> ((Long) row[0]).equals(guardId))
-                .map(row -> (String) row[1])
-                .findFirst()
-                .orElseThrow(
-                    () -> new RuntimeException("Guard code not found for guardId: " + guardId)),
-            guardType
-        ));
-      }
-    }
-
-    createdGuardScheduleAssignments.addAll(existenceGuardScheduleAssignments);
+        .findIdsByGuardIdAndScheduleMonthlyId(guardIds, scheduleMonthly.getId(), contractUnitIds);
 
     List<DateGuardUnityAssignment> createdDateGuardUnityAssignments = new ArrayList<>();
 
@@ -324,13 +317,56 @@ public class DateGuardUnityAssignmentService {
       String unityCode = unit.getUCode();
       for (GuardSchedule guardSchedule : unit.getGuards()) {
         String viCode = guardSchedule.getViCode();
-
-        GuardUnityScheduleSummaryDto gusa = createdGuardScheduleAssignments.stream()
-            .filter(g -> g.guardCode().equals(viCode))
+        Long guardId = guardIdCode.stream()
+            .filter(row -> ((String) row[1]).equals(viCode))
+            .map(row -> (Long) row[0])
             .findFirst()
-            .orElseThrow(() -> new RuntimeException(
-                "No se encontró guardia con código " + viCode + " para asignación en unidad "
-                    + unityCode));
+            .orElseThrow(() -> new RuntimeException("GuardId not found for guard code: " + viCode));
+        GuardUnityScheduleSummaryDto gusa = existenceGuardScheduleAssignments.stream()
+            .filter(existing -> existing.guardCode().equals(viCode) && existing.unityCode()
+                .equals(unityCode))
+            .findFirst()
+            .orElseGet(() -> {
+              GuardAssignment guardAssignment = new GuardAssignment();
+              guardAssignment.setGuardId(guardId);
+              guardAssignment.setActive(true);
+              guardAssignment = guardAssignmentRepository.save(guardAssignment);
+
+              GuardType guardType = guardIdCode.stream()
+                  .filter(row -> ((Long) row[0]).equals(guardId))
+                  .map(row -> (GuardType) row[2])
+                  .findFirst()
+                  .orElseThrow(
+                      () -> new RuntimeException("Guard type not found for guardId: " + guardId));
+
+              GuardUnityScheduleAssignment newAssignment = new GuardUnityScheduleAssignment();
+              newAssignment.setGuardAssignmentId(guardAssignment.getId());
+              newAssignment.setScheduleMonthlyId(scheduleMonthly.getId());
+              newAssignment.setContractUnityId(unitTemplates.stream()
+                  .filter(template -> template.unityCode().equals(unityCode))
+                  .map(ContractScheduleSummaryDto::contractUnityId)
+                  .findFirst()
+                  .orElseThrow(() -> new RuntimeException(
+                      "ContractUnityId not found for unityCode: " + unityCode)));
+              newAssignment.setGuardType(guardType);
+              newAssignment = guardUnityScheduleAssignmentRepository.save(newAssignment);
+              GuardUnityScheduleSummaryDto gusaDto = new GuardUnityScheduleSummaryDto(
+                  newAssignment.getId(),
+                  guardId,
+                  guardIdCode.stream()
+                      .filter(row -> ((Long) row[0]).equals(guardId))
+                      .map(row -> (String) row[1])
+                      .findFirst()
+                      .orElseThrow(
+                          () -> new RuntimeException("Guard code not found for guardId: " + guardId)),
+                  newAssignment.getContractUnityId(),
+                  unityCode,
+                  guardType
+              );
+              existenceGuardScheduleAssignments.add(gusaDto);
+              return gusaDto;
+            });
+
 
         for (Entry<Integer, ShiftCell> entry : guardSchedule.getMergedShifts().entrySet()) {
           if (entry.getValue().getShift().equals("VC")) {
@@ -423,6 +459,7 @@ public class DateGuardUnityAssignmentService {
           newDayOfMonth.setMonth(month);
           newDayOfMonth.setYear(year);
           newDayOfMonth.setDayOfWeek(DayOfWeek.fromJavaDayOfWeek(date.getDayOfWeek()));
+          newDayOfMonth.setDate(date);
 
           WeekOfMonth weekOfMonth = findOrCreateWeek(date);
           newDayOfMonth.setWeekOfMonthId(weekOfMonth.getId());

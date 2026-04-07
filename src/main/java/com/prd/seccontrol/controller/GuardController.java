@@ -2,8 +2,10 @@ package com.prd.seccontrol.controller;
 
 import com.prd.seccontrol.model.dto.CreateGuardRequest;
 import com.prd.seccontrol.model.dto.GuardDto;
+import com.prd.seccontrol.model.dto.GuardLiteView;
 import com.prd.seccontrol.model.entity.Guard;
 import com.prd.seccontrol.repository.GuardRepository;
+import com.prd.seccontrol.service.impl.ShiftFilterService;
 import com.prd.seccontrol.service.inter.SearchService;
 import com.prd.seccontrol.util.SEConstants;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,9 @@ public class GuardController {
 
   @Autowired
   private SearchService<Guard> searchService;
+
+  @Autowired
+  private ShiftFilterService shiftFilterService;
 
   @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/guard/all")
   public Page<GuardDto> findAll(@RequestParam(required = false) String query,  Pageable pageable) {
@@ -66,6 +71,11 @@ public class GuardController {
   public Long deleteGuard(@PathVariable Long id) {
     guardRepository.deleteById(id);
     return id;
+  }
+
+  @GetMapping(SEConstants.SECURE_BASE_ENDPOINT + "/guard/lite-search")
+  public Page<GuardLiteView> findGeneralGuards(@RequestParam String searchTerm, Pageable pageable) {
+    return shiftFilterService.findGeneralGuards(searchTerm ,pageable);
   }
 
 }

@@ -46,7 +46,6 @@ public class ScheduleExceptionController {
   }
 
   //special service
-
   @PostMapping(SEConstants.SECURE_BASE_ENDPOINT + "/schedule-exception/special-service")
   public ScheduleExceptionDto createScheduleExceptionsForDateGuardUnityAssignment(
       @RequestBody CreateSpecialServiceExceptionRequest request) {

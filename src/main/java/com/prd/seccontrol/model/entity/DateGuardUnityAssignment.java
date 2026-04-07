@@ -48,11 +48,20 @@ public class DateGuardUnityAssignment {
   private boolean hasVacation;
   private boolean hasExceptions;
   private boolean hasExtraHours;
+  private boolean hasMarks;
   private boolean finalized;
   @CreationTimestamp
   private LocalDateTime createdAt;
   @UpdateTimestamp
   private LocalDateTime updatedAt;
+
+  public boolean isHasMarks() {
+    return hasMarks;
+  }
+
+  public void setHasMarks(boolean hasMarks) {
+    this.hasMarks = hasMarks;
+  }
 
   public LocalDateTime getDateTimeEntry() {
     return dateTimeEntry;
